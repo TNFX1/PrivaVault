@@ -9,11 +9,11 @@
   </p>
 
   <p align="center">
-    <img src="https://img.shields.io/badge/Version-1.2-blue?style=flat-square" alt="Version">
-    <img src="https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square" alt="Encryption">
-    <img src="https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square" alt="Single File">
-    <img src="https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square" alt="Privacy">
-    <img src="https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square" alt="License">
+    <a href="https://github.com/TNFX1/PrivaVault/releases"><img src="https://img.shields.io/badge/Version-1.2-blue?style=flat-square" alt="Version"></a>
+    <a href="#-security-architecture"><img src="https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square" alt="Encryption"></a>
+    <a href="#-why-single-file-architecture"><img src="https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square" alt="Single File"></a>
+    <a href="#-overview"><img src="https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square" alt="Privacy"></a>
+    <a href="https://github.com/TNFX1/PrivaVault/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square" alt="License"></a>
   </p>
 </div>
 
