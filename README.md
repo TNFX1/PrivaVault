@@ -51,7 +51,7 @@ PrivaVault is a modern **single-file** web application that requires no complex 
 
 1. Clone or download the repository to your local machine:
    ```bash
-   git clone https://github.com/TNFX1/PrivaVault.git```
+   git clone https://github.com/TNFX1/PrivaVault.git ```
 
 2. Simply double-click and open the **`index.html`** file in any modern web browser (Chrome, Firefox, Edge, Safari). No server deployment required!
 
