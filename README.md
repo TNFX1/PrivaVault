@@ -9,13 +9,13 @@
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT"></a>
     <a href="https://caniuse.com/cryptography"><img src="https://img.shields.io/badge/Web%20Crypto-API-blue?style=flat-square" alt="Web Crypto API"></a>
     <img src="https://img.shields.io/badge/Status-Active-success?style=flat-square" alt="Status">
-    <img src="https://img.shields.io/badge/Privacy-100%25_Client_Side-critical?style=flat-square" alt="Privacy">
+    <img src="https://img.shields.io/badge/Privacy-100%25_Local-critical?style=flat-square" alt="Privacy">
   </p>
 
   <p>
     <a href="#-features">Features</a> •
     <a href="#️-security-architecture">Security</a> •
-    <a href="#-how-to-use">How to Use</a> •
+    <a href="#-how-to-use-local--offline">How to Use</a> •
     <a href="#-tech-stack">Tech Stack</a> •
     <a href="#-license">License</a>
   </p>
@@ -27,7 +27,7 @@
 
 **PrivaVault** is a high-security, lightweight web application built to encrypt and decrypt files directly inside your browser. Designed with a strict **Zero-Knowledge** architecture, it ensures that your data, keys, and passwords never leave your device and are never transmitted to any external server.
 
-Whether you want to securely store sensitive documents on public clouds or share confidential files across untrusted channels, PrivaVault gives you total cryptographic data sovereignty.
+PrivaVault is designed to run **entirely locally**, giving you total cryptographic data sovereignty without relying on any hosted web service or cloud backend.
 
 ---
 
@@ -38,7 +38,7 @@ Whether you want to securely store sensitive documents on public clouds or share
 * **Advanced Key Stretching:** Uses **PBKDF2-SHA256** with customizable security iterations (up to 600,000 rounds) to defeat brute-force and GPU cracking attempts.
 * **Multi-Language Support:** Full built-in support for **English (EN)** and **Turkish (TR)** with persistent user preferences (`localStorage`).
 * **Customizable Extensions:** Choose your preferred encrypted file extension (`.enc`, `.pvault`, `.locked`, `.secure`, `.vault`, `.crypto`).
-* **Air-Gap / Offline Capable:** Works entirely offline without an active internet connection.
+* **Air-Gap / Offline Capable:** Runs entirely offline directly from your machine.
 
 ---
 
@@ -51,17 +51,14 @@ PrivaVault follows a strict **"Trust No One"** model:
 
 ---
 
-## 🚀 How to Use
+## 🚀 How to Use (Local & Offline)
 
-### Option 1: Online (via GitHub Pages)
-Visit the live hosted version directly:
-👉 **[PrivaVault Live App](https://tnfx1.github.io/PrivaVault/)**
+For maximum privacy and air-gapped security, PrivaVault runs entirely on your local machine:
 
-### Option 2: Locally / Offline (Maximum Privacy & Air-Gapped)
 1. Clone or download this repository.
 2. Ensure `index.html` and `logo.png` are in the same folder.
-3. Double-click `index.html` to open it in any modern browser (Chrome, Edge, Firefox, Safari).
-4. *Tip:* You can disconnect your internet entirely before using it for maximum security.
+3. Double-click `index.html` to open it in any modern web browser (Chrome, Edge, Firefox, Safari).
+4. *Tip:* You can disconnect your internet entirely before using it for ultimate security.
 
 ---
 
