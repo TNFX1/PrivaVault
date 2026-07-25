@@ -9,11 +9,11 @@
   </p>
 
   <p align="center">
-    <img src="[https://img.shields.io/badge/Version-1.2-blue?style=flat-square](https://img.shields.io/badge/Version-1.2-blue?style=flat-square)" alt="Version">
-    <img src="[https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square](https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square)" alt="Encryption">
-    <img src="[https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square](https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square)" alt="Single File">
-    <img src="[https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square](https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square)" alt="Privacy">
-    <img src="[https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)" alt="License">
+    <img src="https://img.shields.io/badge/Version-1.2-blue?style=flat-square" alt="Version">
+    <img src="https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square" alt="Encryption">
+    <img src="https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square" alt="Single File">
+    <img src="https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square" alt="Privacy">
+    <img src="https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square" alt="License">
   </p>
 </div>
 
@@ -58,10 +58,7 @@ Because PrivaVault is a standalone **single-file** application, you don't need a
 3. Double-click the file to open it in any modern web browser (Chrome, Firefox, Edge, Safari).
 
 ### Option 2: Clone Repository (For Developers)
-1. Clone the repository to your local machine:
-   ```bash
-   git clone https://github.com/TNFX1/PrivaVault.git
-   ```
+1. Clone the repository to your local machine: `git clone https://github.com/TNFX1/PrivaVault.git`
 2. Open the **`index.html`** file inside the cloned folder with your browser.
 
 ---
