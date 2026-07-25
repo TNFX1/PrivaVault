@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivaVault - Secure Local Encryption</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #121316;
+            --surface: #1c1d22;
+            --surface-hover: #26272f;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #2e3038;
+            --input-bg: #141518;
+            --success-bg: #064e3b;
+            --success-text: #6ee7b7;
+            --success-border: #047857;
+            --error-bg: #7f1d1d;
+            --error-text: #fca5a5;
+            --error-border: #b91c1c;
+            --info-bg: #1e3a8a;
+            --info-text: #93c5fd;
+            --info-border: #1d4ed8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .card {
+            background-color: var(--surface);
+            width: 100%;
+            max-width: 460px;
+            padding: 36px 32px;
+            border-radius: 20px;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        /* Üst Sağ Araç Barı */
+        .top-tools {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn, .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--input-bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn:hover, .lang-switch:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+        }
+
+        .tool-btn svg, .lang-switch svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .lang-switch select {
+            background: transparent;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            color: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 28px;
+        }
+
+        .header-logo {
+            max-width: 100px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 12px;
+            object-fit: contain;
+            display: inline-block;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Sekmeler */
+        .tabs {
+            display: flex;
+            background-color: var(--input-bg);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--surface);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .label-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .label-with-icon label {
+            margin-bottom: 0;
+        }
+
+        .info-icon-btn {
+            background: rgba(37, 99, 235, 0.15);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 11px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .info-icon-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Özelleştirilmiş Dosya Seçici */
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: var(--primary);
+        }
+
+        .browse-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .browse-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .file-name-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: none;
+        }
+
+        input[type="password"], input[type="text"], select.form-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        input:focus, select.form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 8px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.99);
+        }
+
+        /* Bildirim Kutusu */
+        #status {
+            margin-top: 20px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            border: 1px solid transparent;
+            text-align: center;
+        }
+
+        .status-success { background-color: var(--success-bg); color: var(--success-text); border-color: var(--success-border); display: block !important; }
+        .status-error { background-color: var(--error-bg); color: var(--error-text); border-color: var(--error-border); display: block !important; }
+        .status-info { background-color: var(--info-bg); color: var(--info-text); border-color: var(--info-border); display: block !important; }
+
+        /* Modal (Ayarlar) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 420px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--text-main);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .info-box {
+            background: var(--input-bg);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: 16px;
+        }
+
+        .sub-info-box {
+            background: var(--input-bg);
+            border: 1px dashed var(--primary);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="top-tools">
+            <button class="tool-btn" onclick="openSettingsModal()" title="Ayarlar / Settings">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </button>
+
+            <div class="lang-switch">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <select id="langSelect" onchange="changeLanguage(this.value)">
+                    <option value="en" selected>EN</option>
+                    <option value="tr">TR</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="header">
+            <img src="logo.png" alt="PrivaVault Logo" class="header-logo" onerror="this.style.display='none'">
+            <h1 data-i18n="appTitle">PrivaVault</h1>
+            <p data-i18n="appSubtitle">Local & zero-knowledge file encryption</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="btnEncryptTab" onclick="switchTab('encrypt')" data-i18n="tabEncrypt">Encrypt File</button>
+            <button class="tab-btn" id="btnDecryptTab" onclick="switchTab('decrypt')" data-i18n="tabDecrypt">Decrypt File</button>
+        </div>
+
+        <div id="encryptSection" class="tab-content active">
+            <div class="form-group">
+                <label data-i18n="labelSelectFile">Select File</label>
+                <div class="file-input-wrapper" onclick="document.getElementById('encFileInput').click()">
+                    <button type="button" class="browse-btn" data-i18n="btnBrowse">Browse...</button>
+                    <span id="encFileName" class="file-name-text" data-i18n="noFileChosen">No file chosen</span>
+                    <input type="file" id="encFileInput" style="display: none;" onchange="handleFileChange('encFileInput', 'encFileName')">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="labelPassword">Password</label>
+                <input type="password" id="encPasswordInput" placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="labelPasswordConfirm">Confirm Password</label>
+                <input type="password" id="encPasswordConfirmInput" placeholder="••••••••">
+            </div>
+
+            <button class="btn" onclick="encryptFile()" data-i18n="btnEncrypt">Encrypt & Download</button>
+        </div>
+
+        <div id="decryptSection" class="tab-content">
+            <div class="form-group">
+                <label data-i18n="labelSelectEncFile">Encrypted File</label>
+                <div class="file-input-wrapper" onclick="document.getElementById('decFileInput').click()">
+                    <button type="button" class="browse-btn" data-i18n="btnBrowse">Browse...</button>
+                    <span id="decFileName" class="file-name-text" data-i18n="noFileChosen">No file chosen</span>
+                    <input type="file" id="decFileInput" style="display: none;" onchange="handleFileChange('decFileInput', 'decFileName')">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="labelYourPassword">Your Password</label>
+                <input type="password" id="decPasswordInput" placeholder="••••••••">
+            </div>
+
+            <button class="btn" onclick="decryptFile()" data-i18n="btnDecrypt">Decrypt & Download</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 data-i18n="settingsTitle">Application Settings</h3>
+                <button class="close-btn" onclick="closeSettingsModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="labelIterations">PBKDF2 Iteration Count (Security)</label>
+                <select id="settingIterations" class="form-select">
+                    <option value="100000" data-i18n="optIter100k">100,000 (Fast / Standard)</option>
+                    <option value="300000" data-i18n="optIter300k">300,000 (More Secure)</option>
+                    <option value="600000" data-i18n="optIter600k">600,000 (Maximum Security)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <div class="label-with-icon">
+                    <label data-i18n="labelExtension">Encrypted File Extension</label>
+                    <button type="button" class="info-icon-btn" onclick="toggleExtInfo()" title="Extension Info">i</button>
+                </div>
+                <select id="settingExtension" class="form-select">
+                    <option value=".enc" data-i18n="optExtEnc">.enc (Standard Encrypted)</option>
+                    <option value=".pvault" data-i18n="optExtPvault">.pvault (PrivaVault Custom)</option>
+                    <option value=".locked" data-i18n="optExtLocked">.locked (Locked File)</option>
+                    <option value=".secure" data-i18n="optExtSecure">.secure (Secure File)</option>
+                    <option value=".vault" data-i18n="optExtVault">.vault (Vault File)</option>
+                    <option value=".crypto" data-i18n="optExtCrypto">.crypto (Crypto File)</option>
+                </select>
+
+                <div id="extInfoText" class="sub-info-box" style="display: none;" data-i18n="extInfoDescription">
+                    All extensions use the same strong encryption algorithm (AES-256-GCM). There is no security difference.<br><br>
+                    • <b>.enc</b>: Standard encrypted format.<br>
+                    • <b>.pvault</b>: PrivaVault custom branding.<br>
+                    • <b>Others</b>: Alternative extensions for custom file organization or hiding file types.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-group">
+                    <input type="checkbox" id="settingAutoClear" checked>
+                    <span data-i18n="labelAutoClear">Auto-clear form after operation</span>
+                </label>
+            </div>
+
+            <div class="info-box">
+                <strong>PrivaVault v1.2</strong><br>
+                <span data-i18n="aboutText">All encryption tasks are processed locally using AES-256-GCM & PBKDF2-SHA256 algorithms. Your data never leaves your device.</span>
+            </div>
+
+            <button class="btn" onclick="saveSettings()" style="margin-top: 16px;" data-i18n="btnSaveSettings">Save Settings</button>
+        </div>
+    </div>
+
+    <script>
+        // ÇOKLU DİL SÖZLÜĞÜ (i18n)
+        const i18n = {
+            en: {
+                appTitle: "PrivaVault",
+                appSubtitle: "Local & zero-knowledge file encryption",
+                tabEncrypt: "Encrypt File",
+                tabDecrypt: "Decrypt File",
+                labelSelectFile: "Select File",
+                labelSelectEncFile: "Encrypted File",
+                btnBrowse: "Browse...",
+                noFileChosen: "No file chosen",
+                labelPassword: "Password",
+                labelPasswordConfirm: "Confirm Password",
+                labelYourPassword: "Your Password",
+                btnEncrypt: "Encrypt & Download",
+                btnDecrypt: "Decrypt & Download",
+                msgSelectFile: "Please select a file!",
+                msgFillPasswords: "Please fill in both password fields!",
+                msgPassMismatch: "Passwords do not match!",
+                msgEncrypting: "Encrypting file...",
+                msgEncryptSuccess: "File encrypted successfully!",
+                msgEncryptError: "An error occurred during encryption!",
+                msgSelectFileAndPass: "Please select a file and enter the password!",
+                msgDecrypting: "Decrypting file...",
+                msgDecryptSuccess: "File decrypted successfully!",
+                msgDecryptError: "Incorrect password or corrupted file!",
+                settingsTitle: "Application Settings",
+                labelIterations: "PBKDF2 Iteration Count (Security)",
+                labelExtension: "Encrypted File Extension",
+                labelAutoClear: "Auto-clear form after operation",
+                aboutText: "All encryption tasks are processed locally using AES-256-GCM & PBKDF2-SHA256 algorithms. Your data never leaves your device.",
+                btnSaveSettings: "Save Settings",
+                extInfoDescription: "All extensions use the same strong encryption algorithm (AES-256-GCM). There is no security difference.<br><br>• <b>.enc</b>: Standard encrypted format.<br>• <b>.pvault</b>: PrivaVault custom branding.<br>• <b>Others</b>: Alternative extensions for custom file organization or hiding file types.",
+                optIter100k: "100,000 (Fast / Standard)",
+                optIter300k: "300,000 (More Secure)",
+                optIter600k: "600,000 (Maximum Security)",
+                optExtEnc: ".enc (Standard Encrypted)",
+                optExtPvault: ".pvault (PrivaVault Custom)",
+                optExtLocked: ".locked (Locked File)",
+                optExtSecure: ".secure (Secure File)",
+                optExtVault: ".vault (Vault File)",
+                optExtCrypto: ".crypto (Crypto File)"
+            },
+            tr: {
+                appTitle: "PrivaVault",
+                appSubtitle: "Sıfır bilgi mimarisi ile yerel dosya şifreleme",
+                tabEncrypt: "Dosya Şifrele",
+                tabDecrypt: "Şifre Çöz",
+                labelSelectFile: "Dosya Seçin",
+                labelSelectEncFile: "Şifreli Dosya",
+                btnBrowse: "Göz at...",
+                noFileChosen: "Dosya seçilmedi.",
+                labelPassword: "Parola",
+                labelPasswordConfirm: "Parola (Tekrar)",
+                labelYourPassword: "Parolanız",
+                btnEncrypt: "Şifrele ve İndir",
+                btnDecrypt: "Şifreyi Çöz ve İndir",
+                msgSelectFile: "Lütfen bir dosya seçin!",
+                msgFillPasswords: "Lütfen parolayı iki alana da girin!",
+                msgPassMismatch: "Girilen parolalar birbiriyle eşleşmiyor!",
+                msgEncrypting: "Dosya şifreleniyor...",
+                msgEncryptSuccess: "Dosya başarıyla şifrelendi!",
+                msgEncryptError: "Şifreleme sırasında bir hata oluştu!",
+                msgSelectFileAndPass: "Lütfen dosyayı seçin ve parolayı girin!",
+                msgDecrypting: "Şifre çözülüyor...",
+                msgDecryptSuccess: "Şifre başarıyla çözüldü!",
+                msgDecryptError: "Hatalı parola veya bozuk dosya!",
+                settingsTitle: "Uygulama Ayarları",
+                labelIterations: "PBKDF2 İterasyon Sayısı (Güvenlik)",
+                labelExtension: "Şifreli Dosya Uzantısı",
+                labelAutoClear: "İşlem sonrası formu otomatik temizle",
+                aboutText: "Tüm şifreleme işlemleri AES-256-GCM ve PBKDF2-SHA256 algoritmaları kullanılarak tamamen cihazınızda gerçekleşir. Verileriniz asla bir sunucuya gönderilmez.",
+                btnSaveSettings: "Ayarları Kaydet",
+                extInfoDescription: "Tüm uzantılar aynı güçlü şifreleme algoritmasını (AES-256-GCM) kullanır. Güvenlik farkı yoktur.<br><br>• <b>.enc</b>: Standart şifreli dosya biçimi.<br>• <b>.pvault</b>: PrivaVault özel markalama.<br>• <b>Diğerleri</b>: Kendi kişisel düzeniniz veya dosya türünü gizlemek için alternatif uzantılardır.",
+                optIter100k: "100.000 (Hızlı / Standart)",
+                optIter300k: "300.000 (Daha Güvenli)",
+                optIter600k: "600.000 (Maksimum Güvenlik)",
+                optExtEnc: ".enc (Standart Şifreli)",
+                optExtPvault: ".pvault (PrivaVault Özel)",
+                optExtLocked: ".locked (Kilitli Dosya)",
+                optExtSecure: ".secure (Güvenli Dosya)",
+                optExtVault: ".vault (Kasa Dosyası)",
+                optExtCrypto: ".crypto (Kriptolu Dosya)"
+            }
+        };
+
+        let currentLang = "en";
+
+        // AYARLAR YÖNETİMİ
+        let userSettings = {
+            iterations: 100000,
+            extension: ".enc",
+            autoClear: true
+        };
+
+        function initAppLanguage() {
+            const savedLang = localStorage.getItem("pv_lang") || "en";
+            document.getElementById("langSelect").value = savedLang;
+            changeLanguage(savedLang);
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem("pv_lang", lang);
+
+            document.querySelectorAll("[data-i18n]").forEach(element => {
+                const key = element.getAttribute("data-i18n");
+                if (i18n[lang][key]) {
+                    element.innerHTML = i18n[lang][key];
+                }
+            });
+
+            // Seçilmemiş dosya etiketlerini anlık dille güncelle
+            updateFileLabel('encFileInput', 'encFileName');
+            updateFileLabel('decFileInput', 'decFileName');
+
+            hideStatus();
+        }
+
+        function handleFileChange(inputId, spanId) {
+            updateFileLabel(inputId, spanId);
+        }
+
+        function updateFileLabel(inputId, spanId) {
+            const input = document.getElementById(inputId);
+            const span = document.getElementById(spanId);
+            if (input && input.files && input.files.length > 0) {
+                span.textContent = input.files[0].name;
+                span.style.color = "var(--text-main)";
+            } else if (span) {
+                span.textContent = i18n[currentLang]["noFileChosen"];
+                span.style.color = "var(--text-muted)";
+            }
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem("pv_settings");
+            if (saved) {
+                try {
+                    userSettings = JSON.parse(saved);
+                } catch(e) {}
+            }
+            document.getElementById("settingIterations").value = userSettings.iterations;
+            document.getElementById("settingExtension").value = userSettings.extension || ".enc";
+            document.getElementById("settingAutoClear").checked = userSettings.autoClear;
+        }
+
+        function saveSettings() {
+            userSettings.iterations = parseInt(document.getElementById("settingIterations").value, 10);
+            userSettings.extension = document.getElementById("settingExtension").value;
+            userSettings.autoClear = document.getElementById("settingAutoClear").checked;
+
+            localStorage.setItem("pv_settings", JSON.stringify(userSettings));
+            closeSettingsModal();
+        }
+
+        function openSettingsModal() {
+            loadSettings();
+            document.getElementById("settingsModal").classList.add("active");
+        }
+
+        function closeSettingsModal() {
+            document.getElementById("settingsModal").classList.remove("active");
+            document.getElementById("extInfoText").style.display = "none";
+        }
+
+        function toggleExtInfo() {
+            const infoBox = document.getElementById("extInfoText");
+            if (infoBox.style.display === "none" || infoBox.style.display === "") {
+                infoBox.style.display = "block";
+            } else {
+                infoBox.style.display = "none";
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tab === 'encrypt') {
+                document.getElementById('btnEncryptTab').classList.add('active');
+                document.getElementById('encryptSection').classList.add('active');
+            } else {
+                document.getElementById('btnDecryptTab').classList.add('active');
+                document.getElementById('decryptSection').classList.add('active');
+            }
+            hideStatus();
+        }
+
+        function showStatus(key, type) {
+            const status = document.getElementById("status");
+            status.innerHTML = i18n[currentLang][key] || key;
+            status.className = "status-" + type;
+        }
+
+        function hideStatus() {
+            const status = document.getElementById("status");
+            status.className = "";
+            status.style.display = "none";
+        }
+
+        function resetForms() {
+            if (!userSettings.autoClear) return;
+            document.getElementById("encFileInput").value = "";
+            document.getElementById("encPasswordInput").value = "";
+            document.getElementById("encPasswordConfirmInput").value = "";
+            document.getElementById("decFileInput").value = "";
+            document.getElementById("decPasswordInput").value = "";
+            updateFileLabel('encFileInput', 'encFileName');
+            updateFileLabel('decFileInput', 'decFileName');
+        }
+
+        // Web Crypto - Anahtar Türetme (PBKDF2)
+        async function getCryptoKey(password, salt) {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw",
+                enc.encode(password),
+                "PBKDF2",
+                false,
+                ["deriveKey"]
+            );
+
+            return await window.crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: salt,
+                    iterations: userSettings.iterations,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        // DOSYA ŞİFRELEME
+        async function encryptFile() {
+            const fileInput = document.getElementById("encFileInput");
+            const pass1 = document.getElementById("encPasswordInput").value;
+            const pass2 = document.getElementById("encPasswordConfirmInput").value;
+
+            if (!fileInput.files.length) {
+                showStatus("msgSelectFile", "error");
+                return;
+            }
+
+            if (!pass1 || !pass2) {
+                showStatus("msgFillPasswords", "error");
+                return;
+            }
+
+            if (pass1 !== pass2) {
+                showStatus("msgPassMismatch", "error");
+                return;
+            }
+
+            showStatus("msgEncrypting", "info");
+
+            try {
+                const file = fileInput.files[0];
+                const fileBuffer = await file.arrayBuffer();
+
+                const salt = window.crypto.getRandomValues(new Uint8Array(16));
+                const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+                const key = await getCryptoKey(pass1, salt);
+
+                const encryptedContent = await window.crypto.subtle.encrypt(
+                    { name: "AES-GCM", iv: iv },
+                    key,
+                    fileBuffer
+                );
+
+                const combinedBuffer = new Uint8Array(salt.length + iv.length + encryptedContent.byteLength);
+                combinedBuffer.set(salt, 0);
+                combinedBuffer.set(iv, salt.length);
+                combinedBuffer.set(new Uint8Array(encryptedContent), salt.length + iv.length);
+
+                const blob = new Blob([combinedBuffer], { type: "application/octet-stream" });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = file.name + userSettings.extension;
+                a.click();
+
+                showStatus("msgEncryptSuccess", "success");
+                resetForms();
+            } catch (err) {
+                console.error(err);
+                showStatus("msgEncryptError", "error");
+            }
+        }
+
+        // DOSYA ŞİFRE ÇÖZME
+        async function decryptFile() {
+            const fileInput = document.getElementById("decFileInput");
+            const pass = document.getElementById("decPasswordInput").value;
+
+            if (!fileInput.files.length || !pass) {
+                showStatus("msgSelectFileAndPass", "error");
+                return;
+            }
+
+            showStatus("msgDecrypting", "info");
+
+            try {
+                const file = fileInput.files[0];
+                const fileBuffer = await file.arrayBuffer();
+
+                const salt = new Uint8Array(fileBuffer.slice(0, 16));
+                const iv = new Uint8Array(fileBuffer.slice(16, 28));
+                const encryptedData = fileBuffer.slice(28);
+
+                const key = await getCryptoKey(pass, salt);
+
+                const decryptedContent = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    key,
+                    encryptedData
+                );
+
+                const blob = new Blob([decryptedContent]);
+                const url = URL.createObjectURL(blob);
+
+                // Tüm bilinen şifreleme uzantılarını temizleyen regex
+                let originalName = file.name.replace(/\.(enc|pvault|locked|secure|vault|crypto)$/i, "");
+                if (originalName === file.name) originalName = "unlocked-" + file.name;
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = originalName;
+                a.click();
+
+                showStatus("msgDecryptSuccess", "success");
+                resetForms();
+            } catch (err) {
+                console.error(err);
+                showStatus("msgDecryptError", "error");
+            }
+        }
+
+        // Başlangıç Yüklemeleri
+        loadSettings();
+        initAppLanguage();
+    </script>
+</body>
+</html>
