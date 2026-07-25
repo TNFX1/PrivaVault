@@ -9,11 +9,11 @@
   </p>
 
   <p align="center">
-    <img src="https://img.shields.io/badge/Version-1.2-blue?style=flat-square" alt="Version">
-    <img src="https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square" alt="Encryption">
-    <img src="https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square" alt="Single File">
-    <img src="https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square" alt="Privacy">
-    <img src="https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square" alt="License">
+    <img src="[https://img.shields.io/badge/Version-1.2-blue?style=flat-square](https://img.shields.io/badge/Version-1.2-blue?style=flat-square)" alt="Version">
+    <img src="[https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square](https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square)" alt="Encryption">
+    <img src="[https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square](https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square)" alt="Single File">
+    <img src="[https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square](https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square)" alt="Privacy">
+    <img src="[https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)" alt="License">
   </p>
 </div>
 
@@ -49,8 +49,8 @@
 
 PrivaVault is a modern **single-file** web application that requires no complex setup procedures or Node.js dependencies.
 
-1. Clone the repository to your local machine:
-   `git clone https://github.com/TNFX1/PrivaVault.git`
+1. Clone or download the repository to your local machine:
+    git clone [https://github.com/TNFX1/PrivaVault.git](https://github.com/TNFX1/PrivaVault.git)
 
 2. Simply double-click and open the **`index.html`** file in any modern web browser (Chrome, Firefox, Edge, Safari). No server deployment required!
 
