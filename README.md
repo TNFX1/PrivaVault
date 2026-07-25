@@ -9,7 +9,7 @@
   </p>
 
   <p align="center">
-    <a href="https://github.com/TNFX1/PrivaVault/releases"><img src="https://img.shields.io/badge/Version-1.2-blue?style=flat-square" alt="Version"></a>
+    <a href="https://github.com/TNFX1/PrivaVault/releases"><img src="https://img.shields.io/badge/Version-1.3-blue?style=flat-square" alt="Version"></a>
     <a href="#-security-architecture"><img src="https://img.shields.io/badge/Security-AES--256--GCM-success?style=flat-square" alt="Encryption"></a>
     <a href="#-why-single-file-architecture"><img src="https://img.shields.io/badge/Architecture-Single__File-informational?style=flat-square" alt="Single File"></a>
     <a href="#-overview"><img src="https://img.shields.io/badge/Privacy-100%25_Local-orange?style=flat-square" alt="Privacy"></a>
@@ -42,9 +42,10 @@ PrivaVault intentionally avoids traditional heavy frameworks, external CDNs, and
 | :--- | :--- |
 | 📁 **Single-File Design** | Everything you need is self-contained within a single `index.html` file. |
 | 🔐 **Zero-Knowledge Architecture** | Cryptographic operations run locally via the native Web Crypto API. Your passwords and data are never exposed. |
+| 📦 **Multi-File Packing & Offline ZIP** | Pack multiple files into a single encrypted container and extract/download them individually or as a `.zip` file entirely offline. |
 | 🛡️ **Strong Encryption** | Powered by industry-standard **AES-256-GCM** encryption and **PBKDF2-SHA256** key derivation algorithms. |
 | 🌐 **Multi-Language Support** | Built-in support for **English** (`EN`) and **Turkish** (`TR`) for a seamless user experience. |
-| ⚙️ **Customizable Security** | Adjustable PBKDF2 iteration counts (100k, 300k, 600k) and custom file extension choices (`.enc`, `.pvault`, etc.). |
+| ⚙️ **Customizable Security** | Adjustable PBKDF2 iteration counts (100k, 300k, 600k) and custom file extension choices (`.enc`, `.pvault`, `.locked`, etc.). |
 
 ---
 
@@ -55,7 +56,8 @@ Because PrivaVault is a standalone **single-file** application, you don't need a
 ### Option 1: Download Standalone File (Recommended for Users)
 1. Go to the [Releases](https://github.com/TNFX1/PrivaVault/releases) page.
 2. Download the latest **`index.html`** file directly.
-3. Double-click the file to open it in any modern web browser (Chrome, Firefox, Edge, Safari).
+3. Make sure `logo.png` is in the same directory (or update the path as needed).
+4. Double-click `index.html` to open it in any modern web browser (Chrome, Firefox, Edge, Safari).
 
 ### Option 2: Clone Repository (For Developers)
 1. Clone the repository to your local machine: `git clone https://github.com/TNFX1/PrivaVault.git`
@@ -67,21 +69,23 @@ Because PrivaVault is a standalone **single-file** application, you don't need a
 
 ### 🔐 File Encryption
 1. Select the **Encrypt File** tab from the interface.
-2. Click **Browse...** to choose the file you wish to secure.
+2. Click **Browse...** to choose one or multiple files you wish to secure.
 3. Enter a secure password and confirm it in the confirmation field.
-4. Click **Encrypt & Download** to instantly download your securely locked file.
+4. Click **Encrypt & Download** to instantly download your securely locked container.
 
 ### 🔓 File Decryption
 1. Select the **Decrypt File** tab from the interface.
 2. Upload your encrypted file (`.enc`, `.pvault`, etc.) to the system.
 3. Enter the password used during the encryption process.
-4. Click **Decrypt & Download** to restore your original file with its accurate name.
+4. Click **Decrypt File** to unpack your original file(s).
+5. Download individual files or export all decrypted files into a single `.zip` archive.
 
 ---
 
 ## 🛡️ Security Architecture
 
-- **AES-GCM (Galois/Counter Mode):** Ensures both confidentiality and data integrity, immediately detecting any unauthorized tampering with encrypted data.
+- **AES-256-GCM (Galois/Counter Mode):** Ensures both confidentiality and data integrity, immediately detecting any unauthorized tampering with encrypted data.
+- **PBKDF2 Key Derivation:** Uses PBKDF2-SHA256 with configurable iterations (100,000 / 300,000 / 600,000) to protect passwords against brute-force attacks.
 - **Randomized Salt & IV:** Cryptographically secure random **Salt** (16-byte) and **IV** (12-byte) values are generated on every encryption operation, ensuring unique encrypted outputs even when using the same password.
 
 ---
