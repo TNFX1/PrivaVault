@@ -60,7 +60,10 @@ Because PrivaVault is a standalone **single-file** application, you don't need a
 4. Double-click `index.html` to open it in any modern web browser (Chrome, Firefox, Edge, Safari).
 
 ### Option 2: Clone Repository (For Developers)
-1. Clone the repository to your local machine: `git clone https://github.com/TNFX1/PrivaVault.git`
+1. Clone the repository to your local machine: 
+```bash
+git clone https://github.com/TNFX1/PrivaVault.git
+```
 2. Open the **`index.html`** file inside the cloned folder with your browser.
 
 ---
