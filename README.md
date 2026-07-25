@@ -1,75 +1,57 @@
-<div align="center">
-  <img src="logo.png" alt="PrivaVault Logo" width="160" height="160" style="border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-  
-  # PrivaVault
-  
-  <p><strong>Secure, Local, and Zero-Knowledge Client-Side File Encryption</strong></p>
+# PrivaVault 🔒
 
-  <p>
-    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT"></a>
-    <a href="https://caniuse.com/cryptography"><img src="https://img.shields.io/badge/Web%20Crypto-API-blue?style=flat-square" alt="Web Crypto API"></a>
-    <img src="https://img.shields.io/badge/Status-Active-success?style=flat-square" alt="Status">
-    <img src="https://img.shields.io/badge/Privacy-100%25_Local-critical?style=flat-square" alt="Privacy">
-  </p>
+<p align="center">
+  <img src="logo.png" alt="PrivaVault Logo" width="120" height="120">
+</p>
 
-  <p>
-    <a href="#-features">Features</a> •
-    <a href="#️-security-architecture">Security</a> •
-    <a href="#-how-to-use-local--offline">How to Use</a> •
-    <a href="#-tech-stack">Tech Stack</a> •
-    <a href="#-license">License</a>
-  </p>
-</div>
+<p align="center">
+  <b>Secure, Local & Zero-Knowledge File Encryption Tool</b><br>
+  <i>Sıfır Bilgi Mimarisi ile Tamamen Tarayıcınızda Çalışan Yerel Dosya Şifreleme Aracı</i>
+</p>
+
+<p align="center">
+  <a href="#features--özellikler">Features</a> •
+  <a href="#how-it-works--nasıl-çalışır">How It Works</a> •
+  <a href="#security--güvenlik">Security</a> •
+  <a href="#usage--kullanım">Usage</a> •
+  <a href="#license--lisans">License</a>
+</p>
 
 ---
 
-## 🌟 Overview
+## 🚀 About / Hakkında
 
-**PrivaVault** is a high-security, lightweight web application built to encrypt and decrypt files directly inside your browser. Designed with a strict **Zero-Knowledge** architecture, it ensures that your data, keys, and passwords never leave your device and are never transmitted to any external server.
+**PrivaVault** is a lightweight, secure, and modern web application that allows you to encrypt and decrypt your sensitive files locally right inside your browser. No server uploads, no third-party tracking, and absolute zero-knowledge privacy.
 
-PrivaVault is designed to run **entirely locally**, giving you total cryptographic data sovereignty without relying on any hosted web service or cloud backend.
-
----
-
-## ✨ Features
-
-* **100% Client-Side Processing:** All cryptographic operations run locally in your browser memory using the native **Web Crypto API**. No backend, no databases, no tracking.
-* **Military-Grade Encryption:** Powered by **AES-256-GCM** (Galois/Counter Mode), providing both high-performance confidentiality and authenticated integrity.
-* **Advanced Key Stretching:** Uses **PBKDF2-SHA256** with customizable security iterations (up to 600,000 rounds) to defeat brute-force and GPU cracking attempts.
-* **Multi-Language Support:** Full built-in support for **English (EN)** and **Turkish (TR)** with persistent user preferences (`localStorage`).
-* **Customizable Extensions:** Choose your preferred encrypted file extension (`.enc`, `.pvault`, `.locked`, `.secure`, `.vault`, `.crypto`).
-* **Air-Gap / Offline Capable:** Runs entirely offline directly from your machine.
+**PrivaVault**, hassas dosyalarınızı harici bir sunucuya göndermeden, tamamen tarayıcınız içinde yerel olarak şifrelemenize ve şifre çözmenize olanak tanıyan hafif, güvenli ve modern bir web uygulamasıdır. Verileriniz asla cihazınızdan dışarı çıkmaz.
 
 ---
 
-## 🛡️ Security Architecture
+## ✨ Features / Özellikler
 
-PrivaVault follows a strict **"Trust No One"** model:
-1. **Key Derivation:** Your password is never stored or transmitted. It is combined with a cryptographically secure random 128-bit `salt` through PBKDF2 to derive a strong 256-bit AES key.
-2. **Initialization Vector (IV):** Every encryption session generates a unique, unpredictable 96-bit random IV, ensuring identical files encrypted with the same password yield completely different ciphertexts.
-3. **Data Integrity:** AES-GCM guarantees that if an attacker modifies even a single bit of the encrypted file, decryption will mathematically fail, preventing tampering.
-
----
-
-## 🚀 How to Use (Local & Offline)
-
-For maximum privacy and air-gapped security, PrivaVault runs entirely on your local machine:
-
-1. Clone or download this repository.
-2. Ensure `index.html` and `logo.png` are in the same folder.
-3. Double-click `index.html` to open it in any modern web browser (Chrome, Edge, Firefox, Safari).
-4. *Tip:* You can disconnect your internet entirely before using it for ultimate security.
+- **100% Client-Side (Zero-Knowledge):** All cryptographic operations run locally using the native Web Crypto API. Your files and passwords never leave your device. *(Tüm işlemler tarayıcınızda gerçekleşir, verileriniz asla sunucuya gitmez.)*
+- **Strong Encryption Standards:** Powered by **AES-256-GCM** for encryption and **PBKDF2-SHA256** for secure key derivation.
+- **Multi-Language Support:** Built-in support for **English** and **Turkish** (`EN` / `TR`).
+- **Customizable Security Settings:** - Adjustable PBKDF2 iteration counts (100k, 300k, 600k iterations).
+  - Custom encrypted file extensions (`.enc`, `.pvault`, `.locked`, `.secure`, `.vault`, `.crypto`).
+- **Modern & Responsive UI:** Clean, dark-themed interface with smooth tab navigation, auto-clear form security feature, and embedded base64 branding.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack / Teknolojiler
 
-* **HTML5 / CSS3:** Clean, responsive, modern dark-mode UI.
-* **JavaScript (ES6+):** Pure vanilla JS with a modular structure.
-* **Web Crypto API:** Native browser cryptographic engine.
+- **HTML5 / CSS3** (Custom Modern CSS Variables & Responsive Design)
+- **Vanilla JavaScript (ES6+)**
+- **Web Crypto API** (`window.crypto.subtle`)
 
 ---
 
-## 📄 License
+## 📦 Installation & Usage / Kurulum ve Kullanım
 
-This project is open-source and available under the terms of the [MIT License](LICENSE).
+Since PrivaVault is built as a **single-file application** (`index.html`), no complex installation or Node.js environment is required!
+
+PrivaVault tek bir `index.html` dosyası olarak tasarlandığı için karmaşık bir kurulum gerektirmez.
+
+1. Clone or download the repository / Projeyi indirin:
+   ```bash
+   git clone [https://github.com/your-username/privavault.git](https://github.com/your-username/privavault.git)
