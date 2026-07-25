@@ -51,37 +51,35 @@ PrivaVault is a modern **single-file** web application that requires no complex 
 
 1. Clone or download the repository to your local machine:
    ```bash
-   git clone [https://github.com/your-username/privavault.git](https://github.com/your-username/privavault.git)
+   git clone [https://github.com/TNFX1/PrivaVault.git](https://github.com/TNFX1/PrivaVault.git)
+   ```
+2. Simply double-click and open the **`index.html`** file in any modern web browser (Chrome, Firefox, Edge, Safari). No server deployment required!
 
-    Simply double-click and open the index.html file in any modern web browser (Chrome, Firefox, Edge, Safari). No server deployment required!
+---
 
-📖 Usage Guide
-🔐 File Encryption
+## 📖 Usage Guide
 
-    Select the Encrypt File tab from the interface.
+### 🔐 File Encryption
+1. Select the **Encrypt File** tab from the interface.
+2. Click **Browse...** to choose the file you wish to secure.
+3. Enter a secure password and confirm it in the confirmation field.
+4. Click **Encrypt & Download** to instantly download your securely locked file.
 
-    Click Browse... to choose the file you wish to secure.
+### 🔓 File Decryption
+1. Select the **Decrypt File** tab from the interface.
+2. Upload your encrypted file (`.enc`, `.pvault`, etc.) to the system.
+3. Enter the password used during the encryption process.
+4. Click **Decrypt & Download** to restore your original file with its accurate name.
 
-    Enter a secure password and confirm it in the confirmation field.
+---
 
-    Click Encrypt & Download to instantly download your securely locked file.
+## 🛡️ Security Architecture
 
-🔓 File Decryption
+- **AES-GCM (Galois/Counter Mode):** Ensures both confidentiality and data integrity, immediately detecting any unauthorized tampering with encrypted data.
+- **Randomized Salt & IV:** Cryptographically secure random **Salt** (16-byte) and **IV** (12-byte) values are generated on every encryption operation, ensuring unique encrypted outputs even when using the same password.
 
-    Select the Decrypt File tab from the interface.
+---
 
-    Upload your encrypted file (.enc, .pvault, etc.) to the system.
+## 📄 License
 
-    Enter the password used during the encryption process.
-
-    Click Decrypt & Download to restore your original file with its accurate name.
-
-🛡️ Security Architecture
-
-    AES-GCM (Galois/Counter Mode): Ensures both confidentiality and data integrity, immediately detecting any unauthorized tampering with encrypted data.
-
-    Randomized Salt & IV: Cryptographically secure random Salt (16-byte) and IV (12-byte) values are generated on every encryption operation, ensuring unique encrypted outputs even when using the same password.
-
-📄 License
-
-This project is licensed under the MIT License. Feel free to customize, modify, and contribute.
+This project is licensed under the [MIT License](LICENSE). Feel free to customize, modify, and contribute.
