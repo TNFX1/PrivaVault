@@ -53,7 +53,7 @@ PrivaVault intentionally avoids traditional heavy frameworks, external CDNs, and
 
 Because PrivaVault is a standalone **single-file** application, you don't need any complex setup or Node.js environment. You can get started in seconds:
 
-### Option 1: Download Standalone File (Recommended for Users)
+### Option 1: Download File (Recommended for Users)
 1. Go to the [Releases](https://github.com/TNFX1/PrivaVault/releases) page.
 2. Download the latest **`index.html`** file directly.
 3. Make sure `logo.png` is in the same directory (or update the path as needed).
