@@ -46,7 +46,7 @@
         .card {
             background-color: var(--surface);
             width: 100%;
-            max-width: 460px;
+            max-width: 480px;
             padding: 32px 28px;
             border-radius: 20px;
             box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4);
@@ -103,7 +103,6 @@
             margin-bottom: 24px;
         }
 
-        /* Büyütülmüş Logo */
         .header img.app-logo {
             width: 110px;
             height: 110px;
@@ -250,6 +249,58 @@
             background-color: var(--primary-hover);
         }
 
+        /* Liste Yapısı ve İşlem Butonları */
+        .file-list {
+            margin-top: 14px;
+            max-height: 160px;
+            overflow-y: auto;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .download-btn {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            background: #047857;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-row .btn {
+            flex: 1;
+            font-size: 12px;
+            margin-top: 0;
+            padding: 10px;
+        }
+
         #status {
             margin-top: 20px;
             padding: 12px 16px;
@@ -273,6 +324,7 @@
             align-items: center;
             z-index: 1000;
         }
+
         .modal {
             background: var(--surface);
             padding: 24px;
@@ -281,6 +333,7 @@
             width: 90%;
             max-width: 400px;
         }
+
         .modal h2 { font-size: 18px; margin-bottom: 16px; }
         .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px; }
     </style>
@@ -332,8 +385,8 @@
 
         <div id="decryptTab" class="tab-content">
             <div class="form-group">
-                <label id="lblSelectVault">Select Encrypted File(s)</label>
-                <div class="file-input-wrapper" onclick="handleSelectDecFile()">
+                <label id="lblSelectVault">Select Encrypted Vault Package</label>
+                <div class="file-input-wrapper" onclick="handleSelectVaultFile()">
                     <button type="button" class="browse-btn" id="btnBrowseDec">Browse</button>
                     <span class="file-name-text" id="decFileNameText">No file selected...</span>
                 </div>
@@ -344,7 +397,15 @@
                 <input type="password" id="decPassword" placeholder="Enter password">
             </div>
 
-            <button class="btn" id="btnDecrypt" onclick="processDecrypt()">Decrypt File(s)</button>
+            <button class="btn" id="btnInspect" onclick="inspectVault()">Open & Inspect Vault</button>
+
+            <div id="vaultContent" style="display:none;">
+                <div class="file-list" id="fileListContainer"></div>
+                <div class="action-row">
+                    <button class="btn" id="btnExtractFolder" style="background:#2563eb" onclick="extractAll('folder')">Extract to Folder</button>
+                    <button class="btn" id="btnExtractZip" style="background:#7c3aed" onclick="extractAll('zip')">Download as ZIP</button>
+                </div>
+            </div>
         </div>
 
         <div id="status"></div>
@@ -383,7 +444,7 @@
 
     <script>
         let selectedEncFiles = [];
-        let selectedDecFiles = [];
+        let selectedVaultPath = null;
         let currentLang = 'en';
         let customExtension = 'pvault';
         let securityIterations = '100000';
@@ -394,22 +455,24 @@
                 tabEnc: "Encrypt",
                 tabDec: "Decrypt",
                 lblSelectFiles: "Select File(s)",
-                lblSelectVault: "Select Encrypted File(s)",
+                lblSelectVault: "Select Encrypted Vault Package",
                 lblPass: "Password",
                 btnBrowse: "Browse",
-                btnEncrypt: "Encrypt File(s)",
-                btnDecrypt: "Decrypt File(s)",
+                btnEncrypt: "Package & Encrypt File(s)",
+                btnInspect: "Open & Inspect Vault",
+                btnExtractFolder: "Extract to Folder",
+                btnExtractZip: "Download as ZIP",
+                btnDownloadSingle: "Download",
                 settingsTitle: "Settings",
                 lblSecurityLevel: "Security Encryption Level (PBKDF2)",
                 lblCustomExt: "Default Encrypted Extension",
                 noFile: "No file selected...",
                 filesSelected: "file(s) selected",
-                msgEncSuccess: "Successfully encrypted and saved!",
-                msgDecSuccess: "Successfully decrypted!",
-                msgEncProgress: "Encrypting file(s), please wait...",
-                msgDecProgress: "Decrypting file(s), please wait...",
+                msgEncSuccess: "Successfully packaged and encrypted!",
+                msgEncProgress: "Packaging and encrypting, please wait...",
+                msgInspectProgress: "Decrypting archive content...",
                 errNoEncFile: "Please select file(s) to encrypt.",
-                errNoDecFile: "Please select encrypted file(s).",
+                errNoVaultFile: "Please select an encrypted vault package.",
                 errNoPass: "Please enter a password."
             },
             tr: {
@@ -417,22 +480,24 @@
                 tabEnc: "Şifrele",
                 tabDec: "Şifre Çöz",
                 lblSelectFiles: "Dosya(lar) Seç",
-                lblSelectVault: "Şifreli Dosya(lar) Seç",
+                lblSelectVault: "Şifreli Paketi Seç (.pvault)",
                 lblPass: "Şifre",
                 btnBrowse: "Gözat",
-                btnEncrypt: "Dosya(ları) Şifrele",
-                btnDecrypt: "Şifre(leri) Çöz",
+                btnEncrypt: "Paketle ve Şifrele",
+                btnInspect: "İçeriği Aç ve İncele",
+                btnExtractFolder: "Klasöre Çıkar",
+                btnExtractZip: "ZIP Olarak İndir",
+                btnDownloadSingle: "İndir",
                 settingsTitle: "Ayarlar",
                 lblSecurityLevel: "Güvenlik Şifreleme Seviyesi (PBKDF2)",
                 lblCustomExt: "Varsayılan Şifreli Uzantı",
                 noFile: "Dosya seçilmedi...",
                 filesSelected: "dosya seçildi",
-                msgEncSuccess: "Başarıyla şifrelendi ve kaydedildi!",
-                msgDecSuccess: "Şifre başarıyla çözüldü!",
-                msgEncProgress: "Dosya(lar) şifreleniyor, lütfen bekleyin...",
-                msgDecProgress: "Şifre(ler) çözülüyor, lütfen bekleyin...",
+                msgEncSuccess: "Başarıyla paketlendi ve şifrelendi!",
+                msgEncProgress: "Paketleniyor ve şifreleniyor, lütfen bekleyin...",
+                msgInspectProgress: "Arşiv içeriği çözülüyor...",
                 errNoEncFile: "Lütfen şifrelenecek dosya(ları) seçin.",
-                errNoDecFile: "Lütfen şifreli dosya(ları) seçin.",
+                errNoVaultFile: "Lütfen şifreli vault paketini seçin.",
                 errNoPass: "Lütfen şifrenizi girin."
             }
         };
@@ -451,13 +516,15 @@
             document.getElementById('btnBrowseEnc').textContent = t.btnBrowse;
             document.getElementById('btnBrowseDec').textContent = t.btnBrowse;
             document.getElementById('btnEncrypt').textContent = t.btnEncrypt;
-            document.getElementById('btnDecrypt').textContent = t.btnDecrypt;
+            document.getElementById('btnInspect').textContent = t.btnInspect;
+            document.getElementById('btnExtractFolder').textContent = t.btnExtractFolder;
+            document.getElementById('btnExtractZip').textContent = t.btnExtractZip;
             document.getElementById('settingsTitle').textContent = t.settingsTitle;
             document.getElementById('lblSecurityLevel').textContent = t.lblSecurityLevel;
             document.getElementById('lblCustomExt').textContent = t.lblCustomExt;
 
             if (selectedEncFiles.length === 0) document.getElementById('encFileNameText').textContent = t.noFile;
-            if (selectedDecFiles.length === 0) document.getElementById('decFileNameText').textContent = t.noFile;
+            if (!selectedVaultPath) document.getElementById('decFileNameText').textContent = t.noFile;
         }
 
         function switchTab(tab) {
@@ -487,16 +554,12 @@
             }
         }
 
-        async function handleSelectDecFile() {
-            const files = await window.electronAPI.selectVaultFile();
-            if (files && files.length > 0) {
-                selectedDecFiles = files;
-                const t = i18n[currentLang];
-                if (files.length === 1) {
-                    document.getElementById('decFileNameText').textContent = `${files[0].name} (${formatBytes(files[0].size)})`;
-                } else {
-                    document.getElementById('decFileNameText').textContent = `${files.length} ${t.filesSelected}`;
-                }
+        async function handleSelectVaultFile() {
+            const file = await window.electronAPI.selectVaultFile();
+            if (file) {
+                selectedVaultPath = file.path;
+                document.getElementById('decFileNameText').textContent = `${file.name} (${formatBytes(file.size)})`;
+                document.getElementById('vaultContent').style.display = 'none';
             }
         }
 
@@ -527,29 +590,71 @@
             }
         }
 
-        async function processDecrypt() {
+        async function inspectVault() {
             const password = document.getElementById('decPassword').value;
             const t = i18n[currentLang];
 
-            if (selectedDecFiles.length === 0) return showStatus(t.errNoDecFile, 'error');
+            if (!selectedVaultPath) return showStatus(t.errNoVaultFile, 'error');
             if (!password) return showStatus(t.errNoPass, 'error');
 
-            showStatus(t.msgDecProgress, 'info');
+            showStatus(t.msgInspectProgress, 'info');
 
-            const filePaths = selectedDecFiles.map(f => f.path);
-            const res = await window.electronAPI.decryptFile({
-                filePaths: filePaths,
+            const res = await window.electronAPI.inspectVault({
+                filePath: selectedVaultPath,
                 password: password,
                 iterations: securityIterations
             });
 
             if (res.success) {
-                showStatus(`${res.count} ${t.msgDecSuccess}`, 'success');
-                document.getElementById('decPassword').value = '';
+                hideStatus();
+                const container = document.getElementById('fileListContainer');
+                container.innerHTML = '';
+
+                res.files.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.innerHTML = `
+                        <span>${f.name} (${formatBytes(f.size)})</span>
+                        <button class="download-btn" onclick="extractSingle('${f.name}')">${t.btnDownloadSingle}</button>
+                    `;
+                    container.appendChild(item);
+                });
+
+                document.getElementById('vaultContent').style.display = 'block';
+            } else {
+                showStatus(res.error, 'error');
+            }
+        }
+
+        async function extractSingle(fileName) {
+            const password = document.getElementById('decPassword').value;
+            const res = await window.electronAPI.extractSingleFile({
+                filePath: selectedVaultPath,
+                password: password,
+                fileName: fileName,
+                iterations: securityIterations
+            });
+
+            if (res.success) {
+                showStatus(`${fileName} extracted!`, 'success');
             } else if (res.status !== 'canceled') {
                 showStatus('Error: ' + res.error, 'error');
-            } else {
-                hideStatus();
+            }
+        }
+
+        async function extractAll(mode) {
+            const password = document.getElementById('decPassword').value;
+            const res = await window.electronAPI.extractAllFiles({
+                filePath: selectedVaultPath,
+                password: password,
+                mode: mode,
+                iterations: securityIterations
+            });
+
+            if (res.success) {
+                showStatus('All files extracted successfully!', 'success');
+            } else if (res.status !== 'canceled') {
+                showStatus('Error: ' + res.error, 'error');
             }
         }
 
