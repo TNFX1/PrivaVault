@@ -1,6 +1,6 @@
 {
   "name": "privavault",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "Secure Local File Encryption via Stream Architecture",
   "author": "PrivaVault",
   "main": "main.js",
@@ -19,10 +19,8 @@
       "output": "dist"
     },
     "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ]
+      "target": ["nsis", "portable"],
+      "icon": "logo.png"
     }
   }
 }
