@@ -6,5 +6,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   encryptFile: (data) => ipcRenderer.invoke('encrypt-file', data),
   inspectVault: (data) => ipcRenderer.invoke('inspect-vault', data),
   extractSingleFile: (data) => ipcRenderer.invoke('extract-single-file', data),
-  extractAllFiles: (data) => ipcRenderer.invoke('extract-all-files', data)
+  extractAllFiles: (data) => ipcRenderer.invoke('extract-all-files', data),
+  onProgress: (callback) => ipcRenderer.on('update-progress', (event, data) => callback(data))
 });

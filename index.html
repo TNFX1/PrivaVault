@@ -249,6 +249,12 @@
             background-color: var(--primary-hover);
         }
 
+        .btn:disabled {
+            background-color: #334155;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         .file-list {
             margin-top: 14px;
             max-height: 160px;
@@ -300,8 +306,39 @@
             padding: 10px;
         }
 
+        /* Progress Bar Styles */
+        .progress-wrapper {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2563eb, #60a5fa);
+            border-radius: 6px;
+            transition: width 0.2s ease;
+        }
+
         #status {
-            margin-top: 20px;
+            margin-top: 16px;
             padding: 12px 16px;
             border-radius: 10px;
             font-size: 13px;
@@ -379,6 +416,11 @@
                 <input type="password" id="encPassword" placeholder="Enter strong password">
             </div>
 
+            <div class="form-group">
+                <label id="lblConfirmPass">Confirm Password</label>
+                <input type="password" id="encConfirmPassword" placeholder="Re-enter password">
+            </div>
+
             <button class="btn" id="btnEncrypt" onclick="processEncrypt()">Encrypt File(s)</button>
         </div>
 
@@ -404,6 +446,16 @@
                     <button class="btn" id="btnExtractFolder" style="background:#2563eb" onclick="extractAll('folder')">Extract to Folder</button>
                     <button class="btn" id="btnExtractZip" style="background:#7c3aed" onclick="extractAll('zip')">Download as ZIP</button>
                 </div>
+            </div>
+        </div>
+
+        <div class="progress-wrapper" id="progressWrapper">
+            <div class="progress-header">
+                <span id="progressStatusText">Processing...</span>
+                <span id="progressPercentText">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
             </div>
         </div>
 
@@ -456,6 +508,7 @@
                 lblSelectFiles: "Select File(s)",
                 lblSelectVault: "Select Encrypted Vault Package",
                 lblPass: "Password",
+                lblConfirmPass: "Confirm Password",
                 btnBrowse: "Browse",
                 btnEncrypt: "Package & Encrypt File(s)",
                 btnInspect: "Open & Inspect Vault",
@@ -468,11 +521,12 @@
                 noFile: "No file selected...",
                 filesSelected: "file(s) selected",
                 msgEncSuccess: "Successfully packaged and encrypted!",
-                msgEncProgress: "Packaging and encrypting, please wait...",
+                msgEncProgress: "Packaging and encrypting...",
                 msgInspectProgress: "Decrypting archive content...",
                 errNoEncFile: "Please select file(s) to encrypt.",
                 errNoVaultFile: "Please select an encrypted vault package.",
-                errNoPass: "Please enter a password."
+                errNoPass: "Please enter a password.",
+                errPassMismatch: "Passwords do not match!"
             },
             tr: {
                 subTitle: "Yerel ve Güvenli Akış Şifreleme",
@@ -481,6 +535,7 @@
                 lblSelectFiles: "Dosya(lar) Seç",
                 lblSelectVault: "Şifreli Paketi Seç (.pvault)",
                 lblPass: "Şifre",
+                lblConfirmPass: "Şifre Tekrarı",
                 btnBrowse: "Gözat",
                 btnEncrypt: "Paketle ve Şifrele",
                 btnInspect: "İçeriği Aç ve İncele",
@@ -493,13 +548,20 @@
                 noFile: "Dosya seçilmedi...",
                 filesSelected: "dosya seçildi",
                 msgEncSuccess: "Başarıyla paketlendi ve şifrelendi!",
-                msgEncProgress: "Paketleniyor ve şifreleniyor, lütfen bekleyin...",
+                msgEncProgress: "Paketleniyor ve şifreleniyor...",
                 msgInspectProgress: "Arşiv içeriği çözülüyor...",
                 errNoEncFile: "Lütfen şifrelenecek dosya(ları) seçin.",
                 errNoVaultFile: "Lütfen şifreli vault paketini seçin.",
-                errNoPass: "Lütfen şifrenizi girin."
+                errNoPass: "Lütfen şifrenizi girin.",
+                errPassMismatch: "Girdiğiniz şifreler eşleşmiyor!"
             }
         };
+
+        if (window.electronAPI && window.electronAPI.onProgress) {
+            window.electronAPI.onProgress((data) => {
+                showProgress(data.percent, data.status);
+            });
+        }
 
         function changeLanguage(lang) {
             currentLang = lang;
@@ -511,6 +573,7 @@
             document.getElementById('lblSelectFiles').textContent = t.lblSelectFiles;
             document.getElementById('lblSelectVault').textContent = t.lblSelectVault;
             document.getElementById('lblEncPass').textContent = t.lblPass;
+            document.getElementById('lblConfirmPass').textContent = t.lblConfirmPass;
             document.getElementById('lblDecPass').textContent = t.lblPass;
             document.getElementById('btnBrowseEnc').textContent = t.btnBrowse;
             document.getElementById('btnBrowseDec').textContent = t.btnBrowse;
@@ -530,6 +593,7 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             hideStatus();
+            hideProgress();
 
             if (tab === 'encrypt') {
                 document.getElementById('tabEncBtn').classList.add('active');
@@ -564,29 +628,42 @@
 
         async function processEncrypt() {
             const password = document.getElementById('encPassword').value;
+            const confirmPassword = document.getElementById('encConfirmPassword').value;
             const t = i18n[currentLang];
 
             if (selectedEncFiles.length === 0) return showStatus(t.errNoEncFile, 'error');
             if (!password) return showStatus(t.errNoPass, 'error');
+            if (password !== confirmPassword) return showStatus(t.errPassMismatch, 'error');
 
-            showStatus(t.msgEncProgress, 'info');
+            hideStatus();
+            showProgress(5, t.msgEncProgress);
+            setControlsDisabled(true);
 
             const filePaths = selectedEncFiles.map(f => f.path);
-            const res = await window.electronAPI.encryptFile({
-                filePaths: filePaths,
-                password: password,
-                customExt: customExtension,
-                iterations: securityIterations
-            });
+            
+            // Asenkron gecikme vererek UI kilitlenmesini engelle
+            setTimeout(async () => {
+                const res = await window.electronAPI.encryptFile({
+                    filePaths: filePaths,
+                    password: password,
+                    customExt: customExtension,
+                    iterations: securityIterations
+                });
 
-            if (res.success) {
-                showStatus(`${res.count} ${t.msgEncSuccess}`, 'success');
-                document.getElementById('encPassword').value = '';
-            } else if (res.status !== 'canceled') {
-                showStatus('Error: ' + res.error, 'error');
-            } else {
-                hideStatus();
-            }
+                setControlsDisabled(false);
+
+                if (res.success) {
+                    showProgress(100, t.msgEncSuccess);
+                    showStatus(`${res.count} ${t.msgEncSuccess}`, 'success');
+                    document.getElementById('encPassword').value = '';
+                    document.getElementById('encConfirmPassword').value = '';
+                } else if (res.status !== 'canceled') {
+                    hideProgress();
+                    showStatus('Error: ' + res.error, 'error');
+                } else {
+                    hideProgress();
+                }
+            }, 50);
         }
 
         async function inspectVault() {
@@ -596,37 +673,48 @@
             if (!selectedVaultPath) return showStatus(t.errNoVaultFile, 'error');
             if (!password) return showStatus(t.errNoPass, 'error');
 
-            showStatus(t.msgInspectProgress, 'info');
+            hideStatus();
+            showProgress(10, t.msgInspectProgress);
+            setControlsDisabled(true);
 
-            const res = await window.electronAPI.inspectVault({
-                filePath: selectedVaultPath,
-                password: password,
-                iterations: securityIterations
-            });
-
-            if (res.success) {
-                hideStatus();
-                const container = document.getElementById('fileListContainer');
-                container.innerHTML = '';
-
-                res.files.forEach(f => {
-                    const item = document.createElement('div');
-                    item.className = 'file-item';
-                    item.innerHTML = `
-                        <span>${f.name} (${formatBytes(f.size)})</span>
-                        <button class="download-btn" onclick="extractSingle('${f.name}')">${t.btnDownloadSingle}</button>
-                    `;
-                    container.appendChild(item);
+            setTimeout(async () => {
+                const res = await window.electronAPI.inspectVault({
+                    filePath: selectedVaultPath,
+                    password: password,
+                    iterations: securityIterations
                 });
 
-                document.getElementById('vaultContent').style.display = 'block';
-            } else {
-                showStatus(res.error, 'error');
-            }
+                setControlsDisabled(false);
+
+                if (res.success) {
+                    hideProgress();
+                    hideStatus();
+                    const container = document.getElementById('fileListContainer');
+                    container.innerHTML = '';
+
+                    res.files.forEach(f => {
+                        const item = document.createElement('div');
+                        item.className = 'file-item';
+                        item.innerHTML = `
+                            <span>${f.name} (${formatBytes(f.size)})</span>
+                            <button class="download-btn" onclick="extractSingle('${f.name}')">${t.btnDownloadSingle}</button>
+                        `;
+                        container.appendChild(item);
+                    });
+
+                    document.getElementById('vaultContent').style.display = 'block';
+                } else {
+                    hideProgress();
+                    showStatus(res.error, 'error');
+                }
+            }, 50);
         }
 
         async function extractSingle(fileName) {
             const password = document.getElementById('decPassword').value;
+            showProgress(20, 'Extracting...');
+            setControlsDisabled(true);
+
             const res = await window.electronAPI.extractSingleFile({
                 filePath: selectedVaultPath,
                 password: password,
@@ -634,15 +722,24 @@
                 iterations: securityIterations
             });
 
+            setControlsDisabled(false);
+
             if (res.success) {
+                showProgress(100, 'Done');
                 showStatus(`${fileName} extracted!`, 'success');
             } else if (res.status !== 'canceled') {
+                hideProgress();
                 showStatus('Error: ' + res.error, 'error');
+            } else {
+                hideProgress();
             }
         }
 
         async function extractAll(mode) {
             const password = document.getElementById('decPassword').value;
+            showProgress(15, 'Extracting all files...');
+            setControlsDisabled(true);
+
             const res = await window.electronAPI.extractAllFiles({
                 filePath: selectedVaultPath,
                 password: password,
@@ -650,11 +747,40 @@
                 iterations: securityIterations
             });
 
+            setControlsDisabled(false);
+
             if (res.success) {
+                showProgress(100, 'Done');
                 showStatus('All files extracted successfully!', 'success');
             } else if (res.status !== 'canceled') {
+                hideProgress();
                 showStatus('Error: ' + res.error, 'error');
+            } else {
+                hideProgress();
             }
+        }
+
+        function showProgress(percent, text) {
+            const wrapper = document.getElementById('progressWrapper');
+            const fill = document.getElementById('progressBarFill');
+            const status = document.getElementById('progressStatusText');
+            const pct = document.getElementById('progressPercentText');
+
+            wrapper.style.display = 'block';
+            fill.style.width = Math.min(100, Math.max(0, percent)) + '%';
+            if (text) status.textContent = text;
+            pct.textContent = Math.round(percent) + '%';
+        }
+
+        function hideProgress() {
+            document.getElementById('progressWrapper').style.display = 'none';
+            document.getElementById('progressBarFill').style.width = '0%';
+        }
+
+        function setControlsDisabled(disabled) {
+            document.querySelectorAll('button, input').forEach(el => {
+                if (el.id !== 'langSelect') el.disabled = disabled;
+            });
         }
 
         function openSettings() {

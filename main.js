@@ -31,6 +31,12 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+function sendProgress(percent, status) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-progress', { percent, status });
+  }
+}
+
 // Dosya Seçme
 ipcMain.handle('select-files', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -72,16 +78,27 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
 
     if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
 
-    // 1. Tüm dosyaları bellek içi ZIP konteynırına ekle
+    sendProgress(15, 'Preparing files...');
+
+    // 1. Tüm dosyaları ZIP konteynırına ekle
     const innerZip = new JSZip();
-    for (const filePath of filePaths) {
+    const totalFiles = filePaths.length;
+
+    for (let i = 0; i < totalFiles; i++) {
+      const filePath = filePaths[i];
       const fileData = fs.readFileSync(filePath);
       innerZip.file(path.basename(filePath), fileData);
+
+      const percent = Math.round(15 + ((i + 1) / totalFiles) * 35);
+      sendProgress(percent, `Compressing: ${path.basename(filePath)}`);
     }
+
+    sendProgress(55, 'Generating cryptographic key...');
 
     const zipBuffer = await innerZip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
     // 2. ZIP paketini AES-256-GCM ile şifrele
+    sendProgress(70, 'Encrypting data package...');
     const salt = crypto.randomBytes(16);
     const iv = crypto.randomBytes(12);
     const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
@@ -90,9 +107,13 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     const encryptedData = Buffer.concat([cipher.update(zipBuffer), cipher.final()]);
     const authTag = cipher.getAuthTag();
 
+    sendProgress(90, 'Writing file to disk...');
+
     // Yapı: Salt (16B) + IV (12B) + Encrypted ZIP + AuthTag (16B)
     const finalPackage = Buffer.concat([salt, iv, encryptedData, authTag]);
     fs.writeFileSync(saveResult.filePath, finalPackage);
+
+    sendProgress(100, 'Complete');
 
     return { success: true, count: filePaths.length };
   } catch (err) {
@@ -110,16 +131,24 @@ ipcMain.handle('inspect-vault', async (event, { filePath, password, iterations }
       throw new Error('Invalid vault file structure.');
     }
 
+    sendProgress(30, 'Deriving key...');
+
     const salt = buffer.subarray(0, 16);
     const iv = buffer.subarray(16, 28);
     const authTag = buffer.subarray(buffer.length - 16);
     const encryptedData = buffer.subarray(28, buffer.length - 16);
 
     const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
+
+    sendProgress(60, 'Decrypting package...');
+
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAuthTag(authTag);
 
     const decryptedZipBuffer = Buffer.concat([decipher.update(encryptedData), decipher.final()]);
+
+    sendProgress(85, 'Reading archive directory...');
+
     const zipArchive = await JSZip.loadAsync(decryptedZipBuffer);
 
     const files = [];
@@ -128,6 +157,8 @@ ipcMain.handle('inspect-vault', async (event, { filePath, password, iterations }
         files.push({ name: relativePath, size: file._data.uncompressedSize || 0 });
       }
     });
+
+    sendProgress(100, 'Done');
 
     return { success: true, files };
   } catch (err) {
