@@ -33,7 +33,5 @@ jobs:
           prerelease: false
           files: |
             dist/*.exe
-            dist/*.blockmap
-            dist/latest.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

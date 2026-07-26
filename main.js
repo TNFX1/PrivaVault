@@ -37,7 +37,6 @@ function sendProgress(percent, status) {
   }
 }
 
-// Dosya Seçme
 ipcMain.handle('select-files', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile', 'multiSelections']
@@ -50,7 +49,6 @@ ipcMain.handle('select-files', async () => {
   }));
 });
 
-// Vault Dosyası Seçme
 ipcMain.handle('select-vault-file', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile']
@@ -64,7 +62,6 @@ ipcMain.handle('select-vault-file', async () => {
   };
 });
 
-// Şifreleme: Tüm Dosyaları Tek Bir Şifreli Pakete Dönüştürür
 ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, iterations }) => {
   try {
     const ext = customExt ? customExt.replace(/^\./, '') : 'pvault';
@@ -78,9 +75,8 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
 
     if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
 
-    sendProgress(15, 'Preparing files...');
+    sendProgress(10, 'Preparing files...');
 
-    // 1. Tüm dosyaları ZIP konteynırına ekle
     const innerZip = new JSZip();
     const totalFiles = filePaths.length;
 
@@ -89,16 +85,16 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
       const fileData = fs.readFileSync(filePath);
       innerZip.file(path.basename(filePath), fileData);
 
-      const percent = Math.round(15 + ((i + 1) / totalFiles) * 35);
+      const percent = Math.round(10 + ((i + 1) / totalFiles) * 40);
       sendProgress(percent, `Compressing: ${path.basename(filePath)}`);
     }
 
     sendProgress(55, 'Generating cryptographic key...');
+    await new Promise(resolve => setTimeout(resolve, 50)); // UI donmasını önle
 
     const zipBuffer = await innerZip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
-    // 2. ZIP paketini AES-256-GCM ile şifrele
-    sendProgress(70, 'Encrypting data package...');
+    sendProgress(75, 'Encrypting data package...');
     const salt = crypto.randomBytes(16);
     const iv = crypto.randomBytes(12);
     const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
@@ -108,8 +104,6 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     const authTag = cipher.getAuthTag();
 
     sendProgress(90, 'Writing file to disk...');
-
-    // Yapı: Salt (16B) + IV (12B) + Encrypted ZIP + AuthTag (16B)
     const finalPackage = Buffer.concat([salt, iv, encryptedData, authTag]);
     fs.writeFileSync(saveResult.filePath, finalPackage);
 
@@ -121,7 +115,6 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
   }
 });
 
-// Vault Paketini Açma ve İçeriği Listeleme
 ipcMain.handle('inspect-vault', async (event, { filePath, password, iterations }) => {
   try {
     const iter = iterations ? parseInt(iterations, 10) : 100000;
@@ -166,7 +159,6 @@ ipcMain.handle('inspect-vault', async (event, { filePath, password, iterations }
   }
 });
 
-// Tekil Dosya Çıkarma
 ipcMain.handle('extract-single-file', async (event, { filePath, password, fileName, iterations }) => {
   try {
     const iter = iterations ? parseInt(iterations, 10) : 100000;
@@ -200,7 +192,6 @@ ipcMain.handle('extract-single-file', async (event, { filePath, password, fileNa
   }
 });
 
-// Tüm Dosyaları Çıkarma (Klasör veya ZIP Olarak)
 ipcMain.handle('extract-all-files', async (event, { filePath, password, mode, iterations }) => {
   try {
     const iter = iterations ? parseInt(iterations, 10) : 100000;
