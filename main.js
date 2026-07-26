@@ -90,7 +90,7 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     }
 
     sendProgress(55, 'Generating cryptographic key...');
-    await new Promise(resolve => setTimeout(resolve, 50)); // UI donmasını önle
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     const zipBuffer = await innerZip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
