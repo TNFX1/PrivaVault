@@ -75,7 +75,7 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
 
     if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
 
-    sendProgress(10, 'Preparing files...');
+    sendProgress(5, 'Preparing archive...');
 
     const innerZip = new JSZip();
     const totalFiles = filePaths.length;
@@ -87,16 +87,21 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
         innerZip.file(path.basename(filePath), fileData);
       }
 
-      const percent = Math.round(10 + ((i + 1) / totalFiles) * 40);
-      sendProgress(percent, `Compressing: ${path.basename(filePath)}`);
+      if (i % 10 === 0 || i === totalFiles - 1) {
+        const percent = Math.round(5 + ((i + 1) / totalFiles) * 45);
+        sendProgress(percent, `Adding files: ${i + 1}/${totalFiles}`);
+      }
     }
 
-    sendProgress(55, 'Generating cryptographic key...');
-    await new Promise(resolve => setTimeout(resolve, 50));
+    sendProgress(52, 'Compressing package (DEFLATE)...');
+    
+    const zipBuffer = await innerZip.generateAsync({ 
+      type: 'nodebuffer', 
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 } 
+    });
 
-    const zipBuffer = await innerZip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-
-    sendProgress(75, 'Encrypting data package...');
+    sendProgress(75, 'Encrypting data package (AES-256-GCM)...');
     const salt = crypto.randomBytes(16);
     const iv = crypto.randomBytes(12);
     const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
@@ -105,7 +110,7 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     const encryptedData = Buffer.concat([cipher.update(zipBuffer), cipher.final()]);
     const authTag = cipher.getAuthTag();
 
-    sendProgress(90, 'Writing file to disk...');
+    sendProgress(92, 'Writing secure vault to disk...');
     const finalPackage = Buffer.concat([salt, iv, encryptedData, authTag]);
     fs.writeFileSync(saveResult.filePath, finalPackage);
 
