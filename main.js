@@ -82,8 +82,10 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
 
     for (let i = 0; i < totalFiles; i++) {
       const filePath = filePaths[i];
-      const fileData = fs.readFileSync(filePath);
-      innerZip.file(path.basename(filePath), fileData);
+      if (fs.existsSync(filePath)) {
+        const fileData = fs.readFileSync(filePath);
+        innerZip.file(path.basename(filePath), fileData);
+      }
 
       const percent = Math.round(10 + ((i + 1) / totalFiles) * 40);
       sendProgress(percent, `Compressing: ${path.basename(filePath)}`);

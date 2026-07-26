@@ -1,6 +1,6 @@
 {
   "name": "privavault",
-  "version": "1.2.6",
+  "version": "1.2.8",
   "description": "Secure Local Encryption Application",
   "main": "main.js",
   "scripts": {
@@ -24,8 +24,7 @@
       "target": [
         "nsis",
         "portable"
-      ],
-      "icon": "logo.ico"
+      ]
     }
   }
 }
