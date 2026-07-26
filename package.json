@@ -1,6 +1,6 @@
 {
   "name": "privavault",
-  "version": "1.0.6",
+  "version": "1.1.1",
   "description": "Secure Local File Encryption via Stream Architecture",
   "author": "PrivaVault",
   "main": "main.js",
@@ -21,6 +21,13 @@
     "win": {
       "target": ["nsis", "portable"],
       "icon": "logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PrivaVault"
     }
   }
 }

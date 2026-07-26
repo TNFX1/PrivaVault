@@ -10,8 +10,8 @@ function createWindow() {
   const iconPath = path.join(__dirname, 'logo.png');
 
   mainWindow = new BrowserWindow({
-    width: 520,
-    height: 850,
+    width: 540,
+    height: 860,
     resizable: false,
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
@@ -31,7 +31,7 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// Dosya Seçimi
+// Dosya Seçimi (Çoklu Dosya Desteği)
 ipcMain.handle('select-files', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile', 'multiSelections']
@@ -44,102 +44,134 @@ ipcMain.handle('select-files', async () => {
   }));
 });
 
+// Vault Dosyaları Seçimi (Çoklu Seçim Desteği)
 ipcMain.handle('select-vault-file', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openFile']
+    properties: ['openFile', 'multiSelections']
   });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  const filePath = result.filePaths[0];
-  return {
+  if (result.canceled) return [];
+  return result.filePaths.map(filePath => ({
     path: filePath,
     name: path.basename(filePath),
     size: fs.statSync(filePath).size
-  };
+  }));
 });
 
-// Şifreleme İşlemi (Dinamik Iteration ve Uzantı İle)
-ipcMain.handle('encrypt-file', async (event, { filePath, password, customExt, iterations }) => {
+// Şifreleme İşlemi (Çoklu Dosya Döngüsü)
+ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, iterations }) => {
   try {
     const ext = customExt ? customExt.replace(/^\./, '') : 'pvault';
-    const defaultOutputName = `${filePath}.${ext}`;
-
-    const saveResult = await dialog.showSaveDialog(mainWindow, {
-      title: 'Save Encrypted File',
-      defaultPath: defaultOutputName
-    });
-
-    if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
-
-    const outputPath = saveResult.filePath;
-    const salt = crypto.randomBytes(16);
-    const iv = crypto.randomBytes(12);
-
-    // Kullanıcının ayarlarda seçtiği iteration sayısı kullanılır (Varsayılan 100000)
     const iter = iterations ? parseInt(iterations, 10) : 100000;
-    const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
-    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 
-    const readStream = fs.createReadStream(filePath);
-    const writeStream = fs.createWriteStream(outputPath);
+    // Tek dosya seçilmişse kaydetme penceresi aç, çoklu ise klasör seçtir
+    let targetFolder = null;
+    let singleOutputPath = null;
 
-    writeStream.write(salt);
-    writeStream.write(iv);
+    if (filePaths.length === 1) {
+      const defaultOutputName = `${filePaths[0]}.${ext}`;
+      const saveResult = await dialog.showSaveDialog(mainWindow, {
+        title: 'Save Encrypted File',
+        defaultPath: defaultOutputName
+      });
+      if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
+      singleOutputPath = saveResult.filePath;
+    } else {
+      const folderResult = await dialog.showOpenDialog(mainWindow, {
+        title: 'Select Destination Folder for Encrypted Files',
+        properties: ['openDirectory']
+      });
+      if (folderResult.canceled || folderResult.filePaths.length === 0) return { success: false, status: 'canceled' };
+      targetFolder = folderResult.filePaths[0];
+    }
 
-    await pipeline(readStream, cipher, writeStream);
+    for (let i = 0; i < filePaths.length; i++) {
+      const filePath = filePaths[i];
+      const outputPath = singleOutputPath ? singleOutputPath : path.join(targetFolder, `${path.basename(filePath)}.${ext}`);
 
-    const authTag = cipher.getAuthTag();
-    fs.appendFileSync(outputPath, authTag);
+      const salt = crypto.randomBytes(16);
+      const iv = crypto.randomBytes(12);
 
-    return { success: true, outputPath };
+      const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
+      const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+
+      const readStream = fs.createReadStream(filePath);
+      const writeStream = fs.createWriteStream(outputPath);
+
+      writeStream.write(salt);
+      writeStream.write(iv);
+
+      await pipeline(readStream, cipher, writeStream);
+
+      const authTag = cipher.getAuthTag();
+      fs.appendFileSync(outputPath, authTag);
+    }
+
+    return { success: true, count: filePaths.length };
   } catch (err) {
     return { success: false, error: err.message };
   }
 });
 
-// Şifre Çözme İşlemi
-ipcMain.handle('decrypt-file', async (event, { filePath, password, iterations }) => {
+// Şifre Çözme İşlemi (Çoklu Dosya Döngüsü)
+ipcMain.handle('decrypt-file', async (event, { filePaths, password, iterations }) => {
   try {
-    const fileStats = fs.statSync(filePath);
-    if (fileStats.size < 16 + 12 + 16) {
-      throw new Error('Invalid encrypted file structure.');
+    const iter = iterations ? parseInt(iterations, 10) : 100000;
+
+    let targetFolder = null;
+    let singleOutputPath = null;
+
+    if (filePaths.length === 1) {
+      const defaultOutput = filePaths[0].replace(/\.[^/.]+$/, "");
+      const saveResult = await dialog.showSaveDialog(mainWindow, {
+        title: 'Save Decrypted File',
+        defaultPath: defaultOutput
+      });
+      if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
+      singleOutputPath = saveResult.filePath;
+    } else {
+      const folderResult = await dialog.showOpenDialog(mainWindow, {
+        title: 'Select Destination Folder for Decrypted Files',
+        properties: ['openDirectory']
+      });
+      if (folderResult.canceled || folderResult.filePaths.length === 0) return { success: false, status: 'canceled' };
+      targetFolder = folderResult.filePaths[0];
     }
 
-    const defaultOutput = filePath.replace(/\.[^/.]+$/, "");
+    for (let i = 0; i < filePaths.length; i++) {
+      const filePath = filePaths[i];
+      const fileStats = fs.statSync(filePath);
+      if (fileStats.size < 16 + 12 + 16) {
+        throw new Error(`Invalid file structure: ${path.basename(filePath)}`);
+      }
 
-    const saveResult = await dialog.showSaveDialog(mainWindow, {
-      title: 'Save Decrypted File',
-      defaultPath: defaultOutput
-    });
+      const cleanName = path.basename(filePath).replace(/\.[^/.]+$/, "");
+      const outputPath = singleOutputPath ? singleOutputPath : path.join(targetFolder, cleanName);
 
-    if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
+      const fd = fs.openSync(filePath, 'r');
+      const salt = Buffer.alloc(16);
+      const iv = Buffer.alloc(12);
+      const authTag = Buffer.alloc(16);
 
-    const outputPath = saveResult.filePath;
+      fs.readSync(fd, salt, 0, 16, 0);
+      fs.readSync(fd, iv, 0, 12, 16);
+      fs.readSync(fd, authTag, 0, 16, fileStats.size - 16);
+      fs.closeSync(fd);
 
-    const fd = fs.openSync(filePath, 'r');
-    const salt = Buffer.alloc(16);
-    const iv = Buffer.alloc(12);
-    const authTag = Buffer.alloc(16);
+      const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(authTag);
 
-    fs.readSync(fd, salt, 0, 16, 0);
-    fs.readSync(fd, iv, 0, 12, 16);
-    fs.readSync(fd, authTag, 0, 16, fileStats.size - 16);
-    fs.closeSync(fd);
+      const readStream = fs.createReadStream(filePath, {
+        start: 28,
+        end: fileStats.size - 17
+      });
+      const writeStream = fs.createWriteStream(outputPath);
 
-    const iter = iterations ? parseInt(iterations, 10) : 100000;
-    const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-    decipher.setAuthTag(authTag);
+      await pipeline(readStream, decipher, writeStream);
+    }
 
-    const readStream = fs.createReadStream(filePath, {
-      start: 28,
-      end: fileStats.size - 17
-    });
-    const writeStream = fs.createWriteStream(outputPath);
-
-    await pipeline(readStream, decipher, writeStream);
-
-    return { success: true, outputPath };
+    return { success: true, count: filePaths.length };
   } catch (err) {
-    return { success: false, error: 'Incorrect password or key iteration mismatch. (' + err.message + ')' };
+    return { success: false, error: 'Incorrect password or corrupted file. (' + err.message + ')' };
   }
 });
