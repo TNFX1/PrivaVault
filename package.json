@@ -1,15 +1,14 @@
 {
   "name": "privavault",
-  "version": "1.2.0",
-  "description": "Secure Local File Encryption via Stream Architecture",
-  "author": "PrivaVault",
+  "version": "1.2.1",
+  "description": "Secure Local Encryption Application",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder --publish always"
   },
   "dependencies": {
-    "adm-zip": "^0.5.10"
+    "jszip": "^3.10.1"
   },
   "devDependencies": {
     "electron": "^30.0.0",
@@ -22,15 +21,18 @@
       "output": "dist"
     },
     "win": {
-      "target": ["nsis", "portable"],
-      "icon": "logo.png"
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "PrivaVault"
-    }
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "TNFX1",
+        "repo": "GhostVault",
+        "releaseType": "release"
+      }
+    ]
   }
 }
