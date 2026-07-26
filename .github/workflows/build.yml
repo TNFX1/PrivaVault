@@ -3,13 +3,13 @@ name: Build and Release Executable
 on:
   push:
     tags:
-      - 'v*'  # Örn: v1.0.0, v1.0.1 şeklinde tag atıldığında çalışır
+      - 'v*'
 
 jobs:
   build:
     runs-on: windows-latest
 
-    # GitHub Release oluşturabilmesi için yazma izni
+    # GitHub Actions'a Release oluşturması için izin veriyoruz:
     permissions:
       contents: write
 
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js Environment
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -26,7 +26,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build Electron App & Create Release
+      - name: Build and Publish Electron App
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --win --publish always
