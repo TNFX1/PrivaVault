@@ -31,7 +31,7 @@
         "provider": "github",
         "owner": "TNFX1",
         "repo": "GhostVault",
-        "releaseType": "release"
+        "draft": false
       }
     ]
   }
