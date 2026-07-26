@@ -3,7 +3,7 @@ name: Build and Release Executable
 on:
   push:
     tags:
-      - 'v*' # Sadece v1.2.0, v1.2.1 gibi etiket atandığında çalışır
+      - 'v*' # Sadece v1.2.0, v1.2.1 gibi etiket (tag) basıldığında çalışır
 
 jobs:
   build:
@@ -25,3 +25,5 @@ jobs:
         run: npx electron-builder --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EP_DRAFT: "false"
+          EP_PRE_RELEASE: "false"

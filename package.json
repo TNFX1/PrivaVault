@@ -1,6 +1,6 @@
 {
   "name": "privavault",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Secure Local Encryption Application",
   "main": "main.js",
   "scripts": {
@@ -30,8 +30,7 @@
       {
         "provider": "github",
         "owner": "TNFX1",
-        "repo": "GhostVault",
-        "draft": false
+        "repo": "GhostVault"
       }
     ]
   }
