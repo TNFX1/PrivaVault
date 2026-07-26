@@ -1,11 +1,11 @@
 {
   "name": "privavault",
-  "version": "1.2.2",
+  "version": "1.2.5",
   "description": "Secure Local Encryption Application",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --publish always"
+    "build": "electron-builder"
   },
   "dependencies": {
     "jszip": "^3.10.1"
@@ -17,6 +17,9 @@
   "build": {
     "appId": "com.privavault.app",
     "productName": "PrivaVault",
+    "files": [
+      "**/*"
+    ],
     "directories": {
       "output": "dist"
     },
@@ -25,13 +28,6 @@
         "nsis",
         "portable"
       ]
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "TNFX1",
-        "repo": "GhostVault"
-      }
-    ]
+    }
   }
 }

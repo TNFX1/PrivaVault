@@ -3,7 +3,7 @@ name: Build and Release Executable
 on:
   push:
     tags:
-      - 'v*' # Sadece v1.2.0, v1.2.1 gibi etiket (tag) basıldığında çalışır
+      - 'v*'
 
 jobs:
   build:
@@ -21,9 +21,19 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build and Publish Electron App
-        run: npx electron-builder --publish always
+      - name: Build Electron App
+        run: npx electron-builder --win --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EP_DRAFT: "false"
-          EP_PRE_RELEASE: "false"
+
+      - name: Publish Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
