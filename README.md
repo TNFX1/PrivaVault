@@ -117,7 +117,7 @@ PrivaVault/
 
 ## 💻 Installation & Usage
 
-Visit the official **[Releases](https://github.com/TNFX1/PrivaVault/releases)** section to download prebuilt packages for your system, or use the terminal commands below.
+Visit the official **[Releases](https://github.com/TNFX1/PrivaVault/releases)** section to download prebuilt packages for your system, or run the quick installation commands below in your terminal.
 
 ### 🪟 Windows Executables
 - `PrivaVault-Setup-1.3.6.exe` *(Standard Windows Installer)*
@@ -127,21 +127,21 @@ Visit the official **[Releases](https://github.com/TNFX1/PrivaVault/releases)** 
 
 - **Ubuntu / Debian / Linux Mint (`.deb`):**
   ```bash
-  cd ~/Downloads
+  mkdir -p ~/Downloads && cd ~/Downloads
   wget [https://github.com/TNFX1/PrivaVault/releases/download/v1.3.6/PrivaVault-1.3.6.deb](https://github.com/TNFX1/PrivaVault/releases/download/v1.3.6/PrivaVault-1.3.6.deb)
   sudo apt install ./PrivaVault-1.3.6.deb
   ```
 
 - **Fedora / RHEL / CentOS (`.rpm`):**
   ```bash
-  cd ~/Downloads
+  mkdir -p ~/Downloads && cd ~/Downloads
   wget [https://github.com/TNFX1/PrivaVault/releases/download/v1.3.6/PrivaVault-1.3.6.rpm](https://github.com/TNFX1/PrivaVault/releases/download/v1.3.6/PrivaVault-1.3.6.rpm)
   sudo dnf install ./PrivaVault-1.3.6.rpm
   ```
 
 - **Arch Linux / Manjaro / Universal (`AppImage`):**
   ```bash
-  cd ~/Downloads
+  mkdir -p ~/Downloads && cd ~/Downloads
   wget [https://github.com/TNFX1/PrivaVault/releases/download/v1.3.6/PrivaVault-1.3.6.AppImage](https://github.com/TNFX1/PrivaVault/releases/download/v1.3.6/PrivaVault-1.3.6.AppImage)
   chmod +x PrivaVault-1.3.6.AppImage
   ./PrivaVault-1.3.6.AppImage
