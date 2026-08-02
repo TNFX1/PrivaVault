@@ -135,7 +135,7 @@ Visit the official **[Releases](https://github.com/TNFX1/PrivaVault/releases)** 
   sudo dnf install ./PrivaVault-1.3.6.rpm
   ```
 
-- **Universal AppImage (Any Linux Distribution):**
+- **Arch Linux / Manjaro / Universal (`AppImage`):**
   ```bash
   chmod +x PrivaVault-1.3.6.AppImage
   ./PrivaVault-1.3.6.AppImage
