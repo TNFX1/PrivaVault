@@ -4,12 +4,13 @@ const fs = require('fs');
 const crypto = require('crypto');
 const StreamZip = require('node-stream-zip');
 
-// ESM Archiver modülünü güvenli şekilde yüklemek için değişken
+// ESM Archiver modülünü güvenli şekilde fonksiyon olarak yüklemek için yapılandırma
 let archiverModule = null;
 async function getArchiver() {
   if (!archiverModule) {
     const mod = await import('archiver');
-    archiverModule = mod.default || mod;
+    // modülün kendisi fonksiyon mu yoksa default export mu kontrol edelim
+    archiverModule = typeof mod === 'function' ? mod : (mod.default || mod);
   }
   return archiverModule;
 }
@@ -17,13 +18,16 @@ async function getArchiver() {
 let mainWindow;
 
 function createWindow() {
-  const iconPath = path.join(__dirname, 'logo.png');
+  // Logonun doğru klasörde (assets/logo.png veya kök dizinde) aranması
+  const iconPathPng = path.join(__dirname, 'assets', 'logo.png');
+  const iconPathRoot = path.join(__dirname, 'logo.png');
+  const iconPath = fs.existsSync(iconPathPng) ? iconPathPng : (fs.existsSync(iconPathRoot) ? iconPathRoot : undefined);
 
   mainWindow = new BrowserWindow({
     width: 580,
     height: 880,
     resizable: false,
-    icon: fs.existsSync(iconPath) ? iconPath : undefined,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -152,8 +156,11 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     outputStream.write(iv);
     outputStream.write(iterBuffer);
 
-    // Dinamik Archiver Yüklemesi
+    // Dinamik Archiver Yüklemesi ve Fonksiyon Garantisi
     const archiver = await getArchiver();
+    if (typeof archiver !== 'function') {
+      throw new Error('Archiver module failed to load as a valid function.');
+    }
     const archive = archiver('zip', { zlib: { level: 1 } });
 
     let processedFiles = 0;
