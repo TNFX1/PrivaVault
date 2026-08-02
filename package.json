@@ -1,6 +1,6 @@
 {
   "name": "ghostvault",
-  "version": "1.2.20",
+  "version": "1.2.21",
   "description": "Secure Local Stream Encryption Tool",
   "main": "main.js",
   "scripts": {
@@ -23,15 +23,16 @@
   "build": {
     "appId": "com.tnfx1.ghostvault",
     "productName": "PrivaVault",
+    "generateUpdatesFilesForAllChannels": false,
     "directories": {
       "output": "dist"
     },
-    "publish": {
-      "provider": "github",
-      "owner": "TNFX1",
-      "repo": "GhostVault",
-      "releaseType": "release"
-    },
+"publish": {
+  "provider": "github",
+  "owner": "TNFX1",
+  "repo": "PrivaVault",
+  "releaseType": "release"
+},
     "win": {
       "icon": "assets/icon.ico",
       "target": [
