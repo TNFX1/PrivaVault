@@ -46,17 +46,17 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Linux Dependencies (fpm, rpm & bsdtar)
+      - name: Install Linux Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ruby ruby-dev build-essential rpm libarchive-tools bsdtar
+          sudo apt-get install -y ruby ruby-dev build-essential rpm libarchive-tools
           sudo gem install --no-document fpm
 
       - name: Install Dependencies
         run: npm ci
 
       - name: Build Electron App (Linux)
-        run: npm run build -- --linux --publish never
+        run: npm run build -- --linux deb rpm AppImage --publish never
 
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
@@ -65,7 +65,6 @@ jobs:
           path: |
             dist/*.deb
             dist/*.rpm
-            dist/*.pacman
             dist/*.AppImage
           retention-days: 1
 
