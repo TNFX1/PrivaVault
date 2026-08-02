@@ -153,7 +153,7 @@ chmod +x PrivaVault-1.3.6.AppImage
 **Step 2 (Optional): System & Application Launcher Integration** If you want PrivaVault to appear in your desktop application menu, install `AppImageLauncher`:
 ```bash
 # On Arch Linux / Manjaro
-sudo pacman -S appimagelauncher
+yay -S appimagelauncher
 ```
 Once installed, double-clicking `PrivaVault-1.3.6.AppImage` will integrate it into your system application menu automatically.
 
