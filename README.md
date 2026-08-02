@@ -1,36 +1,38 @@
-<div align="center">
+<p align="center">
+
+&#x20; <img src="logo.png" alt="PrivaVault Logo" width="130" height="130">
+
+</p>
 
 
 
-&#x20; <img src="logo.png" alt="PrivaVault Logo" width="140" height="140">
+<h1 align="center">PrivaVault 🔒</h1>
 
 
 
-&#x20; # PrivaVault 🔒
+<p align="center">
+
+&#x20; <b>Modern, Secure, and Zero-Knowledge Desktop File Encryption Application</b><br>
+
+&#x20; <i>High-Performance Local Stream Encryption Powered by Electron \& Node.js</i>
+
+</p>
 
 
 
-&#x20; \*\*Modern, Secure, and Zero-Knowledge Desktop File Encryption Application\*\* \*High-Performance Local Stream Encryption Powered by Electron \& Node.js\*
+<p align="center">
 
+&#x20; <a href="\[https://github.com/TNFX1/PrivaVault/releases](https://github.com/TNFX1/PrivaVault/releases)"><img src="\[https://img.shields.io/badge/Version-1.3.5-blue?style=for-the-badge](https://img.shields.io/badge/Version-1.3.5-blue?style=for-the-badge)" alt="Version"></a>
 
+&#x20; <a href="#-security-architecture"><img src="\[https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge](https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge)" alt="Security"></a>
 
-&#x20; <br>
+&#x20; <a href="\[https://electronjs.org](https://electronjs.org)"><img src="\[https://img.shields.io/badge/Framework-Electron-informational?style=for-the-badge](https://img.shields.io/badge/Framework-Electron-informational?style=for-the-badge)" alt="Framework"></a>
 
+&#x20; <a href="#-overview"><img src="\[https://img.shields.io/badge/Privacy-100%25\_Local-orange?style=for-the-badge](https://img.shields.io/badge/Privacy-100%25\_Local-orange?style=for-the-badge)" alt="Privacy"></a>
 
+&#x20; <a href="LICENSE"><img src="\[https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)" alt="License"></a>
 
-&#x20; \[!\[Version](https://img.shields.io/badge/Version-1.3.5-blue?style=for-the-badge)](https://github.com/TNFX1/PrivaVault/releases)
-
-&#x20; \[!\[Security](https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge)](#-security-architecture)
-
-&#x20; \[!\[Framework](https://img.shields.io/badge/Framework-Electron-informational?style=for-the-badge)](https://electronjs.org)
-
-&#x20; \[!\[Privacy](https://img.shields.io/badge/Privacy-100%25\_Local-orange?style=for-the-badge)](#-overview)
-
-&#x20; \[!\[License](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)](LICENSE)
-
-
-
-</div>
+</p>
 
 
 
@@ -96,9 +98,9 @@ PrivaVault is available as an official Windows installer as well as a standalone
 
 2\. Download the latest version:
 
-&#x20;  - \*\*`PrivaVault-Setup-X.X.X.exe`\*\* (Standard Windows Installer)
+&#x20;  - `PrivaVault-Setup-X.X.X.exe` (Standard Windows Installer)
 
-&#x20;  - \*\*`PrivaVault-X.X.X.exe`\*\* (Portable Executable – No Installation Required)
+&#x20;  - `PrivaVault-X.X.X.exe` (Portable Executable – No Installation Required)
 
 3\. Run the executable and start securing your files immediately!
 
@@ -110,31 +112,13 @@ PrivaVault is available as an official Windows installer as well as a standalone
 
 ```bash
 
-\# Clone the repository
-
-git clone \[https://github.com/TNFX1/PrivaVault.git](https://github.com/TNFX1/PrivaVault.git)
-
-
-
-\# Navigate into the project folder
+git clone https://github.com/TNFX1/PrivaVault.git
 
 cd PrivaVault
 
-
-
-\# Install dependencies
-
 npm install
 
-
-
-\# Start the application in development mode
-
 npm start
-
-
-
-\# Build Windows executable binaries
 
 npm run build
 
@@ -206,5 +190,5 @@ PrivaVault adheres to strict cryptographic standards:
 
 
 
-This project is open-source and released under the \[MIT License](LICENSE). Feel free to fork, modify, and contribute!
+This project is open-source and released under the \[MIT License](LICENSE).
 
