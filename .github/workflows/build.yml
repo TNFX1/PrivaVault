@@ -30,7 +30,8 @@ jobs:
         with:
           name: windows-artifacts
           path: |
-            dist/*.exe
+            dist/PrivaVault-Setup-*.exe
+            dist/PrivaVault-Portable-*.exe
           retention-days: 1
 
   build-linux:
@@ -63,9 +64,9 @@ jobs:
         with:
           name: linux-artifacts
           path: |
-            dist/*.deb
-            dist/*.rpm
-            dist/*.AppImage
+            dist/PrivaVault-*.deb
+            dist/PrivaVault-*.rpm
+            dist/PrivaVault-*.AppImage
           retention-days: 1
 
   publish-release:
@@ -85,7 +86,12 @@ jobs:
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release-assets/*
+          files: |
+            release-assets/PrivaVault-Setup-*.exe
+            release-assets/PrivaVault-Portable-*.exe
+            release-assets/PrivaVault-*.deb
+            release-assets/PrivaVault-*.rpm
+            release-assets/PrivaVault-*.AppImage
           overwrite: true
           generate_release_notes: true
         env:
