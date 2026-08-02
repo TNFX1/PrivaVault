@@ -8,23 +8,22 @@
     "build": "electron-builder"
   },
   "dependencies": {
-    "archiver": "^8.0.0",
-    "jszip": "^3.10.1"
+    "archiver": "^5.3.1",
+    "jszip": "^3.10.1",
+    "node-stream-zip": "^1.16.0"
   },
   "devDependencies": {
     "electron": "^30.0.0",
     "electron-builder": "^24.13.3"
   },
-  "build": {
-    "appId": "com.privavault.app",
-    "productName": "PrivaVault",
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
+"build": {
+  "appId": "com.privavault.app",
+  "productName": "PrivaVault",
+  "win": {
+    "icon": "assets/icon.ico",
+    "target": ["nsis", "portable"]
+  }
+}
       ]
     }
   }
