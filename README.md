@@ -6,7 +6,7 @@
     <i>High-Performance Local Stream Encryption Powered by Electron & Node.js</i>
   </p>
   <p>
-    <a href="https://github.com/TNFX1/PrivaVault/releases"><img src="https://img.shields.io/badge/Version-1.3.5-blue?style=for-the-badge" alt="Version"></a>
+    <a href="https://github.com/TNFX1/PrivaVault/releases"><img src="https://img.shields.io/badge/Version-1.3.6-blue?style=for-the-badge" alt="Version"></a>
     <a href="#security-architecture"><img src="https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge" alt="Security"></a>
     <a href="#overview"><img src="https://img.shields.io/badge/Privacy-100%25_Local-orange?style=for-the-badge" alt="Privacy"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge" alt="License"></a>
@@ -30,17 +30,17 @@ Unlike web-based encryption tools that suffer from browser memory limitations or
 | 🖥️ **Native Desktop Performance** | Built with Electron & Node.js streams to process large files with minimal RAM consumption. |
 | 🔐 **Zero-Knowledge Privacy** | 100% local processing. Passwords, encryption keys, and raw files never leave your system. |
 | 📦 **Vault Multi-File Container** | Bundle multiple files into a single encrypted vault archive with custom extensions (`.pvault`, `.enc`, etc.). |
-| 🔍 **Vault Inspection** | Inspect and preview encrypted container contents safely before extracting. |
-| 🎯 **Selective & Batch Extraction** | Extract specific files individually or dump all contents to a folder/ZIP archive. |
+| 🔍 **Vault Content Inspection** | Safely inspect and preview encrypted container contents and metadata without extracting everything. |
+| 🎯 **Selective & Batch Extraction** | Extract specific individual files or unpack all files into a directory or ZIP archive. |
 | 🛡️ **Military-Grade Security** | **AES-256-GCM** authenticated stream encryption combined with **PBKDF2-SHA256** key derivation. |
-| ⚡ **Real-Time Progress Indicator** | Built-in progress tracking during multi-file stream encryption and extraction. |
+| ⚡ **Real-Time Progress Indicator** | Visual feedback with live progress bars during encryption and decryption tasks. |
 
 ---
 
 <h2>📷 Application Preview</h2>
 
 <div align="center">
-  <img src="preview.png" alt="PrivaVault Interface Preview" width="650" style="border-radius: 8px;">
+  <img src="preview.png" alt="PrivaVault Interface Preview" width="420" style="border-radius: 8px;">
 </div>
 
 ---
@@ -66,7 +66,7 @@ PrivaVault/
 ├── index.html              # Frontend user interface (HTML5 / CSS3 / JS)
 ├── main.js                 # Electron main process & IPC handlers
 ├── preload.js              # Secure IPC bridge (contextBridge)
-├── preview.png             # UI preview image
+├── preview.png             # Application preview image
 ├── logo.ico                # Executable application icon
 ├── logo.png                # Application branding logo
 ├── package.json            # Dependencies and electron-builder config
