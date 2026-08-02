@@ -28,6 +28,13 @@ jobs:
 
       - name: Build Windows App
         run: npx electron-builder --win --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean Unwanted Windows Artifacts
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path dist -Include *.blockmap,*.yml -Recurse | Remove-Item -Force
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
@@ -57,7 +64,13 @@ jobs:
         run: npm install
 
       - name: Build Linux App
-        run: npx electron-builder --linux AppImage deb rpm pacman --publish never
+        run: npx electron-builder --linux AppImage deb rpm --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean Unwanted Linux Artifacts
+        run: |
+          rm -f dist/*.blockmap dist/*.yml
 
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
@@ -67,7 +80,6 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.rpm
-            dist/*.pacman
 
   release:
     name: Publish Release
@@ -95,7 +107,6 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.rpm
-            dist/*.pacman
           draft: false
           prerelease: false
         env:
