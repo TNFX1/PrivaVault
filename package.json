@@ -44,16 +44,6 @@
       ],
       "icon": "assets/logo.ico"
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "artifactName": "PrivaVault-Setup-${version}.${ext}"
-    },
-    "portable": {
-      "artifactName": "PrivaVault-Portable-${version}.${ext}"
-    },
     "linux": {
       "target": [
         "AppImage",
@@ -61,15 +51,7 @@
         "rpm",
         "pacman"
       ],
-      "category": "Utility",
-      "maintainer": "TNFX1 <contact@privavault.app>",
-      "icon": "assets/logo.png",
-      "synopsis": "Zero-Knowledge Desktop File Encryption Application",
-      "description": "PrivaVault is a high-performance, local stream encryption desktop application using AES-256-GCM and PBKDF2.",
-      "artifactName": "PrivaVault-${version}.${ext}",
-      "desktop": {
-        "StartupWMClass": "PrivaVault"
-      }
+      "icon": "assets/logo.png"
     }
   }
 }
