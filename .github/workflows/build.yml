@@ -10,8 +10,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build Apps for Windows & Linux
+  build-windows:
+    name: Build Windows
     runs-on: windows-latest
 
     steps:
@@ -27,34 +27,49 @@ jobs:
         run: npm install
 
       - name: Build Windows App
-        run: npx electron-builder --win --dir
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Windows Installers
         run: npx electron-builder --win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Upload Windows Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Install Linux Build Tools
         run: |
-          npm install -g electron-builder
+          sudo apt-get update
+          sudo apt-get install -y rpm fakeroot libarchive-tools squashfs-tools
 
-      - name: Build Linux Apps
-        run: npx electron-builder --linux AppImage deb rpm pacman --dir
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Build Linux Packages
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Linux App
         run: npx electron-builder --linux AppImage deb rpm pacman
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Assets
+      - name: Upload Linux Assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/*.exe
             dist/*.AppImage
             dist/*.deb
             dist/*.rpm
