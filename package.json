@@ -1,6 +1,6 @@
 {
   "name": "ghostvault",
-  "version": "1.2.18",
+  "version": "1.2.19",
   "description": "Secure Local Stream Encryption Tool",
   "main": "main.js",
   "scripts": {
