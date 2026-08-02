@@ -1,6 +1,6 @@
 {
   "name": "ghostvault",
-  "version": "1.2.16",
+  "version": "1.2.18",
   "description": "Secure Local Stream Encryption Tool",
   "main": "main.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "archiver": "^7.0.1",
-    "node-stream-zip": "^1.16.0",
+    "node-stream-zip": "^1.15.0",
     "unzipper": "^0.12.3"
   },
   "devDependencies": {
