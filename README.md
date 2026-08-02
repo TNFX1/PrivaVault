@@ -6,10 +6,10 @@
     <i>High-Performance Local Stream Encryption Powered by Electron & Node.js</i>
   </p>
   <p>
-    <a href="https://github.com/TNFX1/PrivaVault/releases"><img src="https://img.shields.io/badge/Version-1.3.6-blue?style=for-the-badge" alt="Version"></a>
-    <a href="#security-architecture"><img src="https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge" alt="Security"></a>
-    <a href="#overview"><img src="https://img.shields.io/badge/Privacy-100%25_Local-orange?style=for-the-badge" alt="Privacy"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge" alt="License"></a>
+    <a href="[https://github.com/TNFX1/PrivaVault/releases](https://github.com/TNFX1/PrivaVault/releases)"><img src="[https://img.shields.io/badge/Version-1.3.6-blue?style=for-the-badge](https://img.shields.io/badge/Version-1.3.6-blue?style=for-the-badge)" alt="Version"></a>
+    <a href="#security-architecture"><img src="[https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge](https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge)" alt="Security"></a>
+    <a href="#overview"><img src="[https://img.shields.io/badge/Privacy-100%25_Local-orange?style=for-the-badge](https://img.shields.io/badge/Privacy-100%25_Local-orange?style=for-the-badge)" alt="Privacy"></a>
+    <a href="LICENSE"><img src="[https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)" alt="License"></a>
   </p>
 </div>
 
@@ -58,6 +58,7 @@ PrivaVault enforces strict cryptographic protocols to ensure data integrity and 
 
 ## 📂 Project Structure
 
+```text
 PrivaVault/
 ├── .github/
 │   └── workflows/
@@ -71,6 +72,7 @@ PrivaVault/
 ├── logo.png                # Application branding logo
 ├── package.json            # Dependencies and electron-builder config
 └── README.md               # Project documentation
+```
 
 ---
 
@@ -88,25 +90,35 @@ Head over to the [Releases](https://github.com/TNFX1/PrivaVault/releases) page t
 PrivaVault supports all major Linux distributions through native packages and portable formats:
 
 - **Ubuntu / Debian / Linux Mint (`.deb`):**
-  `sudo apt install ./PrivaVault-1.3.6.deb`
+  ```bash
+  sudo apt install ./PrivaVault-1.3.6.deb
+  ```
 
 - **Fedora / RHEL / CentOS (`.rpm`):**
-  `sudo dnf install ./PrivaVault-1.3.6.rpm`
+  ```bash
+  sudo dnf install ./PrivaVault-1.3.6.rpm
+  ```
 
 - **Arch Linux / Manjaro (`.pacman`):**
-  `sudo pacman -U ./PrivaVault-1.3.6.pacman`
+  ```bash
+  sudo pacman -U ./PrivaVault-1.3.6.pacman
+  ```
 
 - **Universal AppImage (Any Linux Distro):**
-  `chmod +x PrivaVault-1.3.6.AppImage`
-  `./PrivaVault-1.3.6.AppImage`
+  ```bash
+  chmod +x PrivaVault-1.3.6.AppImage
+  ./PrivaVault-1.3.6.AppImage
+  ```
 
 ### Option 2: Build from Source (Developers)
 
-`git clone https://github.com/TNFX1/PrivaVault.git`
-`cd PrivaVault`
-`npm install`
-`npm start`
-`npm run build`
+```bash
+git clone https://github.com/TNFX1/PrivaVault.git
+cd PrivaVault
+npm install
+npm start
+npm run build
+```
 
 ---
 
