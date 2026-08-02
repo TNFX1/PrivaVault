@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const archiver = require('archiver');
 const JSZip = require('jszip');
 
 let mainWindow;
@@ -75,55 +76,61 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
 
     if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
 
-    sendProgress(5, 'Preparing secure archive...');
+    sendProgress(5, 'Initializing stream encryption...');
 
-    const innerZip = new JSZip();
-    const totalFiles = filePaths.length;
-
-    for (let i = 0; i < totalFiles; i++) {
-      const filePath = filePaths[i];
-      if (fs.existsSync(filePath)) {
-        try {
-          const fileData = fs.readFileSync(filePath);
-          innerZip.file(path.basename(filePath), fileData);
-        } catch (readErr) {
-          console.error(`Skipping unreadable file: ${filePath}`);
-        }
-      }
-
-      if (i % 15 === 0 || i === totalFiles - 1) {
-        const percent = Math.round(5 + ((i + 1) / totalFiles) * 40);
-        sendProgress(percent, `Processing: ${i + 1}/${totalFiles} files`);
-      }
-    }
-
-    sendProgress(48, 'Optimizing memory blocks...');
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    sendProgress(52, 'Compressing package (DEFLATE)...');
-    
-    const zipBuffer = await innerZip.generateAsync({ 
-      type: 'nodebuffer', 
-      compression: 'DEFLATE',
-      compressionOptions: { level: 1 } 
-    });
-
-    sendProgress(75, 'Encrypting package (AES-256-GCM)...');
     const salt = crypto.randomBytes(16);
     const iv = crypto.randomBytes(12);
     const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
 
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const encryptedData = Buffer.concat([cipher.update(zipBuffer), cipher.final()]);
-    const authTag = cipher.getAuthTag();
+    const outputStream = fs.createWriteStream(saveResult.filePath);
 
-    sendProgress(92, 'Writing secure file to disk...');
-    const finalPackage = Buffer.concat([salt, iv, encryptedData, authTag]);
-    fs.writeFileSync(saveResult.filePath, finalPackage);
+    // Header Yazma (Salt + IV)
+    outputStream.write(salt);
+    outputStream.write(iv);
 
-    sendProgress(100, 'Complete');
+    const archive = archiver('zip', {
+      zlib: { level: 1 } // Hizli ve dusuk bellek kullanimi
+    });
 
-    return { success: true, count: filePaths.length };
+    let processedFiles = 0;
+    const totalFiles = filePaths.length;
+
+    archive.on('progress', (data) => {
+      processedFiles = data.entries.processed;
+      const percent = Math.min(90, Math.round(10 + (processedFiles / totalFiles) * 80));
+      sendProgress(percent, `Encrypting: ${processedFiles}/${totalFiles} files`);
+    });
+
+    return new Promise((resolve) => {
+      outputStream.on('close', () => {
+        const authTag = cipher.getAuthTag();
+        // Encrypted verinin en sonuna Auth Tag ekleme
+        fs.appendFileSync(saveResult.filePath, authTag);
+        sendProgress(100, 'Complete');
+        resolve({ success: true, count: filePaths.length });
+      });
+
+      archive.on('error', (err) => {
+        resolve({ success: false, error: err.message });
+      });
+
+      // Stream Borulamasi: Archiver -> AES-256-GCM -> Disk File
+      archive.pipe(cipher).pipe(outputStream, { end: false });
+
+      for (const filePath of filePaths) {
+        if (fs.existsSync(filePath)) {
+          archive.file(filePath, { name: path.basename(filePath) });
+        }
+      }
+
+      cipher.on('end', () => {
+        outputStream.end();
+      });
+
+      archive.finalize();
+    });
+
   } catch (err) {
     return { success: false, error: err.message };
   }
