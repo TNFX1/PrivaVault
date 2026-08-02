@@ -75,7 +75,7 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
 
     if (saveResult.canceled || !saveResult.filePath) return { success: false, status: 'canceled' };
 
-    sendProgress(5, 'Preparing archive...');
+    sendProgress(5, 'Preparing secure archive...');
 
     const innerZip = new JSZip();
     const totalFiles = filePaths.length;
@@ -83,25 +83,32 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     for (let i = 0; i < totalFiles; i++) {
       const filePath = filePaths[i];
       if (fs.existsSync(filePath)) {
-        const fileData = fs.readFileSync(filePath);
-        innerZip.file(path.basename(filePath), fileData);
+        try {
+          const fileData = fs.readFileSync(filePath);
+          innerZip.file(path.basename(filePath), fileData);
+        } catch (readErr) {
+          console.error(`Skipping unreadable file: ${filePath}`);
+        }
       }
 
-      if (i % 10 === 0 || i === totalFiles - 1) {
-        const percent = Math.round(5 + ((i + 1) / totalFiles) * 45);
-        sendProgress(percent, `Adding files: ${i + 1}/${totalFiles}`);
+      if (i % 15 === 0 || i === totalFiles - 1) {
+        const percent = Math.round(5 + ((i + 1) / totalFiles) * 40);
+        sendProgress(percent, `Processing: ${i + 1}/${totalFiles} files`);
       }
     }
+
+    sendProgress(48, 'Optimizing memory blocks...');
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     sendProgress(52, 'Compressing package (DEFLATE)...');
     
     const zipBuffer = await innerZip.generateAsync({ 
       type: 'nodebuffer', 
       compression: 'DEFLATE',
-      compressionOptions: { level: 6 } 
+      compressionOptions: { level: 1 } 
     });
 
-    sendProgress(75, 'Encrypting data package (AES-256-GCM)...');
+    sendProgress(75, 'Encrypting package (AES-256-GCM)...');
     const salt = crypto.randomBytes(16);
     const iv = crypto.randomBytes(12);
     const key = crypto.pbkdf2Sync(password, salt, iter, 32, 'sha256');
@@ -110,7 +117,7 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     const encryptedData = Buffer.concat([cipher.update(zipBuffer), cipher.final()]);
     const authTag = cipher.getAuthTag();
 
-    sendProgress(92, 'Writing secure vault to disk...');
+    sendProgress(92, 'Writing secure file to disk...');
     const finalPackage = Buffer.concat([salt, iv, encryptedData, authTag]);
     fs.writeFileSync(saveResult.filePath, finalPackage);
 
