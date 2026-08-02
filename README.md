@@ -18,6 +18,7 @@
 
 ## 📌 Table of Contents
 - [🌟 Overview](#-overview)
+- [💡 Why PrivaVault?](#-why-privavault)
 - [✨ Key Features](#-key-features)
 - [📷 Application Preview](#-application-preview)
 - [🛡️ Security & Cryptography Architecture](#-security--cryptography-architecture)
@@ -38,6 +39,16 @@
 **PrivaVault** is an advanced, desktop-native file encryption tool engineered with **Electron** and **Node.js stream processing**. It enables users to bundle, encrypt, inspect, and extract single or multiple files locally with absolute privacy.
 
 > 🔒 **100% Zero-Knowledge & Offline** > Unlike web-based tools restricted by browser memory limits or cloud services storing data on remote servers, PrivaVault processes everything **locally on your device**. Passwords, encryption keys, and raw data **never leave your system**.
+
+---
+
+## 💡 Why PrivaVault?
+
+- **True Zero-Knowledge Security:** Your master passwords and raw files never leave your machine—no servers, backdoors, or telemetry.
+- **Unrestricted File Sizes:** High-performance Node.js stream encryption handles multi-gigabyte files effortlessly without high RAM consumption.
+- **Container Flexibility:** Bundle multiple files or folders into custom-encrypted archives (`.pvault`, `.enc`) with real-time inspection capabilities.
+- **Cross-Platform Readiness:** Native executables and packages engineered for Windows as well as all major Linux distributions (`.deb`, `.rpm`, `.pacman`, `AppImage`).
+- **Transparent & Open-Source:** Fully open-source codebase licensed under MIT, giving you complete visibility and control over your data security.
 
 ---
 
