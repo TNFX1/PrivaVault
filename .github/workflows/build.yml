@@ -23,9 +23,7 @@ jobs:
         run: npm ci
 
       - name: Build Electron App (Windows)
-        run: npm run build -- --win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build -- --win --publish never
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
@@ -48,19 +46,17 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Linux Dependencies (fpm & rpm)
+      - name: Install Linux Dependencies (fpm, rpm & bsdtar)
         run: |
           sudo apt-get update
-          sudo apt-get install -y ruby ruby-dev build-essential rpm
+          sudo apt-get install -y ruby ruby-dev build-essential rpm libarchive-tools bsdtar
           sudo gem install --no-document fpm
 
       - name: Install Dependencies
         run: npm ci
 
       - name: Build Electron App (Linux)
-        run: npm run build -- --linux
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build -- --linux --publish never
 
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
