@@ -13,7 +13,6 @@ jobs:
   build-windows:
     name: Build Windows
     runs-on: windows-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,10 +27,8 @@ jobs:
 
       - name: Build Windows App
         run: npx electron-builder --win --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clean Unwanted Windows Artifacts
+      - name: Delete Unwanted Files
         shell: pwsh
         run: |
           Get-ChildItem -Path dist -Include *.blockmap,*.yml -Recurse | Remove-Item -Force
@@ -40,12 +37,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-artifacts
-          path: dist/*.exe
+          path: |
+            dist/*.exe
 
   build-linux:
     name: Build Linux
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -64,13 +61,11 @@ jobs:
         run: npm install
 
       - name: Build Linux App
-        run: npx electron-builder --linux AppImage deb rpm --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --linux AppImage deb rpm pacman --publish never
 
-      - name: Clean Unwanted Linux Artifacts
+      - name: Delete Unwanted Files
         run: |
-          rm -f dist/*.blockmap dist/*.yml
+          rm -f dist/*.blockmap dist/*.yml dist/latest*.yml
 
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
@@ -80,33 +75,29 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.rpm
+            dist/*.pacman
 
   release:
-    name: Publish Release
+    name: Publish Clean Release
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
-
     steps:
       - name: Download Windows Artifacts
         uses: actions/download-artifact@v4
         with:
           name: windows-artifacts
-          path: dist
+          path: release-files
 
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v4
         with:
           name: linux-artifacts
-          path: dist
+          path: release-files
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/*.exe
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
+          files: release-files/*
           draft: false
           prerelease: false
         env:
