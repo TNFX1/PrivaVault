@@ -40,7 +40,7 @@ Unlike web-based encryption tools that suffer from browser memory limitations or
 <h2>📷 Application Preview</h2>
 
 <div align="center">
-  <img src="preview.png" alt="PrivaVault Interface Preview" width="420" style="border-radius: 8px;">
+  <img src="assets/preview.png" alt="PrivaVault Interface Preview" width="420" style="border-radius: 8px;">
 </div>
 
 ---
@@ -63,10 +63,10 @@ PrivaVault/
 │   └── workflows/
 │       └── build.yml       # Automated GitHub Release CI/CD pipeline
 ├── assets/                 # Graphics and UI preview assets
+│   └── preview.png         # Application preview image
 ├── index.html              # Frontend user interface (HTML5 / CSS3 / JS)
 ├── main.js                 # Electron main process & IPC handlers
 ├── preload.js              # Secure IPC bridge (contextBridge)
-├── preview.png             # Application preview image
 ├── logo.ico                # Executable application icon
 ├── logo.png                # Application branding logo
 ├── package.json            # Dependencies and electron-builder config
