@@ -105,7 +105,7 @@ PrivaVault/
 ├── assets/                 # App logos and interface preview graphics
 │   ├── logo.png
 │   └── preview.png
-│   └──  logo.ico
+│   └── logo.ico
 ├── index.html              # Modern User Interface (HTML5 / CSS3 / JS)
 ├── main.js                 # Electron main process & IPC message handlers
 ├── preload.js              # Context-isolated secure IPC bridge
