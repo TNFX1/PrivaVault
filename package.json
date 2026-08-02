@@ -27,6 +27,11 @@
   "build": {
     "appId": "com.privavault.app",
     "productName": "PrivaVault",
+    "publish": {
+      "provider": "github",
+      "owner": "TNFX1",
+      "repo": "PrivaVault"
+    },
     "files": [
       "**/*",
       "!assets/preview.png"
