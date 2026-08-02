@@ -28,9 +28,13 @@ jobs:
 
       - name: Build Windows App
         run: npx electron-builder --win --dir
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Windows Installers
         run: npx electron-builder --win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Linux Build Tools
         run: |
@@ -38,9 +42,13 @@ jobs:
 
       - name: Build Linux Apps
         run: npx electron-builder --linux AppImage deb rpm pacman --dir
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Linux Packages
         run: npx electron-builder --linux AppImage deb rpm pacman
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
