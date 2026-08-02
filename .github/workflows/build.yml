@@ -10,38 +10,8 @@ permissions:
   contents: write
 
 jobs:
-  build-windows:
-    name: Build Windows
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Windows App
-        run: npx electron-builder --win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Windows Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.exe
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-linux:
-    name: Build Linux
+  build:
+    name: Build All Platforms & Release
     runs-on: ubuntu-latest
 
     steps:
@@ -61,15 +31,17 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build Linux App
-        run: npx electron-builder --linux AppImage deb rpm pacman
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Linux Apps
+        run: npx electron-builder --linux AppImage deb rpm pacman --publish never
 
-      - name: Upload Linux Assets
+      - name: Build Windows Apps
+        run: npx electron-builder --win --publish never
+
+      - name: Upload All Assets to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            dist/*.exe
             dist/*.AppImage
             dist/*.deb
             dist/*.rpm

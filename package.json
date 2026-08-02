@@ -14,7 +14,7 @@
     "encryption",
     "security",
     "electron",
-    "aes-256-gcm",
+    "aes-2-56-gcm",
     "zero-knowledge",
     "vault"
   ],
