@@ -123,23 +123,39 @@ Visit the **[Releases](https://github.com/TNFX1/PrivaVault/releases)** section t
 - `PrivaVault-Setup-1.3.6.exe` *(Standard Windows Installer – Double click to install)*
 - `PrivaVault-Portable-1.3.6.exe` *(Portable Executable – Double click to run immediately)*
 
+---
+
 ### 🐧 Linux Packages & Binaries
 
-- **Ubuntu / Debian / Linux Mint (`.deb`):**
-  ```bash
-  sudo apt install ./PrivaVault-1.3.6.deb
-  ```
+#### 📦 Debian / Ubuntu / Linux Mint (`.deb`)
+1. Download `PrivaVault-1.3.6.deb`.
+2. Install via terminal:
+   ```bash
+   sudo apt install ./PrivaVault-1.3.6.deb
+   ```
 
-- **Fedora / RHEL / CentOS (`.rpm`):**
-  ```bash
-  sudo dnf install ./PrivaVault-1.3.6.rpm
-  ```
+#### 📦 Fedora / RHEL / CentOS (`.rpm`)
+1. Download `PrivaVault-1.3.6.rpm`.
+2. Install via terminal:
+   ```bash
+   sudo dnf install ./PrivaVault-1.3.6.rpm
+   ```
 
-- **Arch Linux / Manjaro / Universal (`AppImage`):**
-  ```bash
-  chmod +x PrivaVault-1.3.6.AppImage
-  ./PrivaVault-1.3.6.AppImage
-  ```
+#### 🚀 Arch Linux / Manjaro / Universal (`AppImage`)
+`AppImage` files are standalone executables that do not require installation.
+
+**Step 1: Make it Executable & Run Directly**
+```bash
+chmod +x PrivaVault-1.3.6.AppImage
+./PrivaVault-1.3.6.AppImage
+```
+
+**Step 2 (Optional): System & Application Launcher Integration** If you want PrivaVault to appear in your desktop application menu, install `AppImageLauncher`:
+```bash
+# On Arch Linux / Manjaro
+sudo pacman -S appimagelauncher
+```
+Once installed, double-clicking `PrivaVault-1.3.6.AppImage` will integrate it into your system application menu automatically.
 
 ---
 
