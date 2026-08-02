@@ -2,8 +2,17 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const archiver = require('archiver');
 const StreamZip = require('node-stream-zip');
+
+// ESM Archiver modülünü güvenli şekilde yüklemek için değişken
+let archiverModule = null;
+async function getArchiver() {
+  if (!archiverModule) {
+    const mod = await import('archiver');
+    archiverModule = mod.default || mod;
+  }
+  return archiverModule;
+}
 
 let mainWindow;
 
@@ -143,6 +152,8 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     outputStream.write(iv);
     outputStream.write(iterBuffer);
 
+    // Dinamik Archiver Yüklemesi
+    const archiver = await getArchiver();
     const archive = archiver('zip', { zlib: { level: 1 } });
 
     let processedFiles = 0;
