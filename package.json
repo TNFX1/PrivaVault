@@ -1,5 +1,5 @@
 {
-  "name": "ghostvault",
+  "name": "privavault",
   "version": "1.3.1",
   "description": "Secure Local Stream Encryption Tool",
   "main": "main.js",
@@ -21,7 +21,7 @@
     "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "com.tnfx1.ghostvault",
+    "appId": "com.tnfx1.privavault",
     "productName": "PrivaVault",
     "generateUpdatesFilesForAllChannels": false,
     "directories": {
@@ -34,7 +34,7 @@
       "releaseType": "release"
     },
     "win": {
-      "icon": "assets/icon.ico",
+      "icon": "logo.ico",
       "target": [
         "nsis",
         "portable"
