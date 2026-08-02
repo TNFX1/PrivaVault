@@ -15,7 +15,7 @@
 
 ---
 
-<h2 id="overview">🌟 Overview</h2>
+## 🌟 Overview
 
 **PrivaVault** is an advanced, desktop-native file encryption tool engineered with **Electron** and **Node.js stream processing**. It allows users to bundle, encrypt, inspect, and extract single or multiple files locally with absolute privacy.
 
@@ -23,11 +23,12 @@ Unlike web-based encryption tools that suffer from browser memory limitations or
 
 ---
 
-<h2>✨ Key Features</h2>
+## ✨ Key Features
 
 | Feature | Description |
 | :--- | :--- |
 | 🖥️ **Native Desktop Performance** | Built with Electron & Node.js streams to process large files with minimal RAM consumption. |
+| 🐧 **Cross-Platform Support** | Full support for Windows (Installer & Portable) and all major Linux distributions (.deb, .rpm, .pacman, AppImage). |
 | 🔐 **Zero-Knowledge Privacy** | 100% local processing. Passwords, encryption keys, and raw files never leave your system. |
 | 📦 **Vault Multi-File Container** | Bundle multiple files into a single encrypted vault archive with custom extensions (`.pvault`, `.enc`, etc.). |
 | 🔍 **Vault Content Inspection** | Safely inspect and preview encrypted container contents and metadata without extracting everything. |
@@ -37,7 +38,7 @@ Unlike web-based encryption tools that suffer from browser memory limitations or
 
 ---
 
-<h2>📷 Application Preview</h2>
+## 📷 Application Preview
 
 <div align="center">
   <img src="assets/preview.png" alt="PrivaVault Interface Preview" width="420" style="border-radius: 8px;">
@@ -45,7 +46,7 @@ Unlike web-based encryption tools that suffer from browser memory limitations or
 
 ---
 
-<h2 id="security-architecture">🛡️ Security & Cryptography Architecture</h2>
+## 🛡️ Security & Cryptography Architecture
 
 PrivaVault enforces strict cryptographic protocols to ensure data integrity and confidentiality:
 
@@ -55,9 +56,8 @@ PrivaVault enforces strict cryptographic protocols to ensure data integrity and 
 
 ---
 
-<h2>📂 Project Structure</h2>
+## 📂 Project Structure
 
-```text
 PrivaVault/
 ├── .github/
 │   └── workflows/
@@ -71,32 +71,46 @@ PrivaVault/
 ├── logo.png                # Application branding logo
 ├── package.json            # Dependencies and electron-builder config
 └── README.md               # Project documentation
-```
 
 ---
 
-<h2>💻 Installation & Usage</h2>
+## 💻 Installation & Usage
 
-### Option 1: Download Windows Executables (Recommended)
-1. Go to the [Releases](https://github.com/TNFX1/PrivaVault/releases) page.
-2. Download the latest version:
-   - `PrivaVault-Setup-X.X.X.exe` (Standard Windows Installer)
-   - `PrivaVault-X.X.X.exe` (Portable Executable – No Installation Required)
-3. Run the executable and start securing your files immediately!
+Head over to the [Releases](https://github.com/TNFX1/PrivaVault/releases) page to download the latest prebuilt binaries for your platform.
+
+### Option 1: Download Prebuilt Binaries
+
+#### 🪟 Windows Executables
+- `PrivaVault-Setup-1.3.6.exe` (Standard Windows Installer)
+- `PrivaVault-Portable-1.3.6.exe` (Portable Executable – No Installation Required)
+
+#### 🐧 Linux Packages & Binaries
+PrivaVault supports all major Linux distributions through native packages and portable formats:
+
+- **Ubuntu / Debian / Linux Mint (`.deb`):**
+  `sudo apt install ./PrivaVault-1.3.6.deb`
+
+- **Fedora / RHEL / CentOS (`.rpm`):**
+  `sudo dnf install ./PrivaVault-1.3.6.rpm`
+
+- **Arch Linux / Manjaro (`.pacman`):**
+  `sudo pacman -U ./PrivaVault-1.3.6.pacman`
+
+- **Universal AppImage (Any Linux Distro):**
+  `chmod +x PrivaVault-1.3.6.AppImage`
+  `./PrivaVault-1.3.6.AppImage`
 
 ### Option 2: Build from Source (Developers)
 
-```bash
-git clone [https://github.com/TNFX1/PrivaVault.git](https://github.com/TNFX1/PrivaVault.git)
-cd PrivaVault
-npm install
-npm start
-npm run build
-```
+`git clone https://github.com/TNFX1/PrivaVault.git`
+`cd PrivaVault`
+`npm install`
+`npm start`
+`npm run build`
 
 ---
 
-<h2>📖 How It Works</h2>
+## 📖 How It Works
 
 ### 🔐 Encrypting Files (Creating a Vault)
 1. Launch **PrivaVault** and navigate to the **Encrypt** tab.
@@ -114,7 +128,7 @@ npm run build
 
 ---
 
-<h2>❓ Frequently Asked Questions (FAQ)</h2>
+## ❓ Frequently Asked Questions (FAQ)
 
 <details>
   <summary><b>Q: What happens if I forget my password?</b></summary>
@@ -133,7 +147,7 @@ npm run build
 
 ---
 
-<h2>⚠️ Disclaimer & Limitation of Liability</h2>
+## ⚠️ Disclaimer & Limitation of Liability
 
 **PrivaVault** is provided "as is", without warranty of any kind, express or implied.
 
@@ -143,6 +157,6 @@ npm run build
 
 ---
 
-<h2 id="license">📄 License</h2>
+## 📄 License
 
 This project is open-source and released under the [MIT License](LICENSE).
