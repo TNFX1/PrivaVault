@@ -400,7 +400,7 @@
 
     <div class="card">
         <div class="top-tools">
-            <button class="tool-btn" onclick="openSettings()" title="Settings">
+            <button class="tool-btn" onclick="openSettings()" id="btnSettingsTool" title="Settings">
                 <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c-.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
             </button>
 
@@ -491,26 +491,26 @@
             <div class="form-group">
                 <label id="lblSecurityLevel">Key Derivation Rounds (Security Level)</label>
                 <select id="securityLevelSelect" class="full-select">
-                    <option value="100000">100,000 Rounds (Standard)</option>
-                    <option value="300000">300,000 Rounds (High Security)</option>
-                    <option value="600000">600,000 Rounds (Ultra Security)</option>
+                    <option value="100000" id="optSec100k">100,000 Rounds (Standard)</option>
+                    <option value="300000" id="optSec300k">300,000 Rounds (High Security)</option>
+                    <option value="600000" id="optSec600k">600,000 Rounds (Ultra Security)</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label id="lblCustomExt">Default Encrypted File Extension</label>
                 <select id="customExtSelect" class="full-select">
-                    <option value="pvault" selected>.pvault (PrivaVault Default)</option>
-                    <option value="vault">.vault (Standard Vault)</option>
-                    <option value="enc">.enc (Encrypted File)</option>
-                    <option value="bin">.bin (Binary File)</option>
-                    <option value="dat">.dat (Data File)</option>
-                    <option value="dat.enc">.dat.enc (Secure Data)</option>
+                    <option value="pvault" id="optExtPvault" selected>.pvault (PrivaVault Default)</option>
+                    <option value="vault" id="optExtVault">.vault (Standard Vault)</option>
+                    <option value="enc" id="optExtEnc">.enc (Encrypted File)</option>
+                    <option value="bin" id="optExtBin">.bin (Binary File)</option>
+                    <option value="dat" id="optExtDat">.dat (Data File)</option>
+                    <option value="dat.enc" id="optExtDatEnc">.dat.enc (Secure Data)</option>
                 </select>
             </div>
 
             <div class="modal-footer">
-                <button class="browse-btn" onclick="saveSettings()">Save</button>
+                <button class="browse-btn" id="btnSaveSettings" onclick="saveSettings()">Save</button>
             </div>
         </div>
     </div>
@@ -531,6 +531,9 @@
                 lblSelectVault: "Select Encrypted Vault Package",
                 lblPass: "Password",
                 lblConfirmPass: "Confirm Password",
+                phEncPass: "Enter strong password",
+                phConfirmPass: "Re-enter password",
+                phDecPass: "Enter password",
                 btnBrowse: "Browse",
                 btnEncrypt: "Package & Encrypt File(s)",
                 btnInspect: "Open & Inspect Vault",
@@ -538,13 +541,29 @@
                 btnExtractZip: "Download as ZIP",
                 btnDownloadSingle: "Download",
                 settingsTitle: "Settings",
+                btnSaveSettings: "Save",
                 lblSecurityLevel: "Security Encryption Level (PBKDF2)",
                 lblCustomExt: "Default Encrypted Extension",
+                optSec100k: "100,000 Rounds (Standard)",
+                optSec300k: "300,000 Rounds (High Security)",
+                optSec600k: "600,000 Rounds (Ultra Security)",
+                optExtPvault: ".pvault (PrivaVault Default)",
+                optExtVault: ".vault (Standard Vault)",
+                optExtEnc: ".enc (Encrypted File)",
+                optExtBin: ".bin (Binary File)",
+                optExtDat: ".dat (Data File)",
+                optExtDatEnc: ".dat.enc (Secure Data)",
                 noFile: "No file selected...",
                 filesSelected: "file(s) selected",
                 msgEncSuccess: "Successfully packaged and encrypted!",
                 msgEncProgress: "Packaging and encrypting...",
                 msgInspectProgress: "Decrypting archive content...",
+                msgExtracting: "Extracting...",
+                msgExtractingAll: "Extracting all files...",
+                msgDone: "Done",
+                msgExtractedSingle: "extracted!",
+                msgExtractAllSuccess: "All files extracted successfully!",
+                msgError: "Error",
                 errNoEncFile: "Please select file(s) to encrypt.",
                 errNoVaultFile: "Please select an encrypted vault package.",
                 errNoPass: "Please enter a password.",
@@ -558,6 +577,9 @@
                 lblSelectVault: "Şifreli Paketi Seç (.pvault)",
                 lblPass: "Şifre",
                 lblConfirmPass: "Şifre Tekrarı",
+                phEncPass: "Güçlü bir şifre girin",
+                phConfirmPass: "Şifreyi tekrar girin",
+                phDecPass: "Şifrenizi girin",
                 btnBrowse: "Gözat",
                 btnEncrypt: "Paketle ve Şifrele",
                 btnInspect: "İçeriği Aç ve İncele",
@@ -565,13 +587,29 @@
                 btnExtractZip: "ZIP Olarak İndir",
                 btnDownloadSingle: "İndir",
                 settingsTitle: "Ayarlar",
+                btnSaveSettings: "Kaydet",
                 lblSecurityLevel: "Güvenlik Şifreleme Seviyesi (PBKDF2)",
                 lblCustomExt: "Varsayılan Şifreli Uzantı",
+                optSec100k: "100.000 Tur (Standart)",
+                optSec300k: "300.000 Tur (Yüksek Güvenlik)",
+                optSec600k: "600.000 Tur (Ultra Güvenlik)",
+                optExtPvault: ".pvault (PrivaVault Varsayılan)",
+                optExtVault: ".vault (Standart Kasa)",
+                optExtEnc: ".enc (Şifrelenmiş Dosya)",
+                optExtBin: ".bin (İkili / Binary Dosya)",
+                optExtDat: ".dat (Veri Dosyası)",
+                optExtDatEnc: ".dat.enc (Güvenli Veri)",
                 noFile: "Dosya seçilmedi...",
                 filesSelected: "dosya seçildi",
                 msgEncSuccess: "Başarıyla paketlendi ve şifrelendi!",
                 msgEncProgress: "Paketleniyor ve şifreleniyor...",
                 msgInspectProgress: "Arşiv içeriği çözülüyor...",
+                msgExtracting: "Çıkarılıyor...",
+                msgExtractingAll: "Tüm dosyalar çıkarılıyor...",
+                msgDone: "Tamamlandı",
+                msgExtractedSingle: "başarıyla çıkarıldı!",
+                msgExtractAllSuccess: "Tüm dosyalar başarıyla çıkarıldı!",
+                msgError: "Hata",
                 errNoEncFile: "Lütfen şifrelenecek dosya(ları) seçin.",
                 errNoVaultFile: "Lütfen şifreli vault paketini seçin.",
                 errNoPass: "Lütfen şifrenizi girin.",
@@ -597,6 +635,13 @@
             document.getElementById('lblEncPass').textContent = t.lblPass;
             document.getElementById('lblConfirmPass').textContent = t.lblConfirmPass;
             document.getElementById('lblDecPass').textContent = t.lblPass;
+
+            // Placeholders
+            document.getElementById('encPassword').placeholder = t.phEncPass;
+            document.getElementById('encConfirmPassword').placeholder = t.phConfirmPass;
+            document.getElementById('decPassword').placeholder = t.phDecPass;
+
+            // Buttons & Modal
             document.getElementById('btnBrowseEnc').textContent = t.btnBrowse;
             document.getElementById('btnBrowseDec').textContent = t.btnBrowse;
             document.getElementById('btnEncrypt').textContent = t.btnEncrypt;
@@ -604,8 +649,21 @@
             document.getElementById('btnExtractFolder').textContent = t.btnExtractFolder;
             document.getElementById('btnExtractZip').textContent = t.btnExtractZip;
             document.getElementById('settingsTitle').textContent = t.settingsTitle;
+            document.getElementById('btnSaveSettings').textContent = t.btnSaveSettings;
             document.getElementById('lblSecurityLevel').textContent = t.lblSecurityLevel;
             document.getElementById('lblCustomExt').textContent = t.lblCustomExt;
+            document.getElementById('btnSettingsTool').title = t.settingsTitle;
+
+            // Select Options
+            document.getElementById('optSec100k').textContent = t.optSec100k;
+            document.getElementById('optSec300k').textContent = t.optSec300k;
+            document.getElementById('optSec600k').textContent = t.optSec600k;
+            document.getElementById('optExtPvault').textContent = t.optExtPvault;
+            document.getElementById('optExtVault').textContent = t.optExtVault;
+            document.getElementById('optExtEnc').textContent = t.optExtEnc;
+            document.getElementById('optExtBin').textContent = t.optExtBin;
+            document.getElementById('optExtDat').textContent = t.optExtDat;
+            document.getElementById('optExtDatEnc').textContent = t.optExtDatEnc;
 
             if (selectedEncFiles.length === 0) document.getElementById('encFileNameText').textContent = t.noFile;
             if (!selectedVaultPath) document.getElementById('decFileNameText').textContent = t.noFile;
@@ -680,7 +738,7 @@
                     document.getElementById('encConfirmPassword').value = '';
                 } else if (res.status !== 'canceled') {
                     hideProgress();
-                    showStatus('Error: ' + res.error, 'error');
+                    showStatus(`${t.msgError}: ${res.error}`, 'error');
                 } else {
                     hideProgress();
                 }
@@ -699,7 +757,6 @@
             setControlsDisabled(true);
 
             setTimeout(async () => {
-                // iterations parametresini göndermiyoruz; main.js başlık (header) bilgisinden otomatik okuyor.
                 const res = await window.electronAPI.inspectVault({
                     filePath: selectedVaultPath,
                     password: password
@@ -733,7 +790,8 @@
 
         async function extractSingle(fileName) {
             const password = document.getElementById('decPassword').value;
-            showProgress(20, 'Extracting...');
+            const t = i18n[currentLang];
+            showProgress(20, t.msgExtracting);
             setControlsDisabled(true);
 
             const res = await window.electronAPI.extractSingleFile({
@@ -745,11 +803,11 @@
             setControlsDisabled(false);
 
             if (res.success) {
-                showProgress(100, 'Done');
-                showStatus(`${fileName} extracted!`, 'success');
+                showProgress(100, t.msgDone);
+                showStatus(`${fileName} ${t.msgExtractedSingle}`, 'success');
             } else if (res.status !== 'canceled') {
                 hideProgress();
-                showStatus('Error: ' + res.error, 'error');
+                showStatus(`${t.msgError}: ${res.error}`, 'error');
             } else {
                 hideProgress();
             }
@@ -757,7 +815,8 @@
 
         async function extractAll(mode) {
             const password = document.getElementById('decPassword').value;
-            showProgress(15, 'Extracting all files...');
+            const t = i18n[currentLang];
+            showProgress(15, t.msgExtractingAll);
             setControlsDisabled(true);
 
             const res = await window.electronAPI.extractAllFiles({
@@ -769,11 +828,11 @@
             setControlsDisabled(false);
 
             if (res.success) {
-                showProgress(100, 'Done');
-                showStatus('All files extracted successfully!', 'success');
+                showProgress(100, t.msgDone);
+                showStatus(t.msgExtractAllSuccess, 'success');
             } else if (res.status !== 'canceled') {
                 hideProgress();
-                showStatus('Error: ' + res.error, 'error');
+                showStatus(`${t.msgError}: ${res.error}`, 'error');
             } else {
                 hideProgress();
             }
