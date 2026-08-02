@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const StreamZip = require('node-stream-zip');
+const archiver = require('archiver'); // Dinamik import yerine standart require kullanılıyor
 
 // ESM Archiver modülünü güvenli şekilde fonksiyon olarak yüklemek için yapılandırma
 let archiverModule = null;
