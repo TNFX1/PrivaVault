@@ -30,6 +30,7 @@
   "build": {
     "appId": "com.privavault.app",
     "productName": "PrivaVault",
+    "generateUpdatesFilesForAllChannels": false,
     "publish": {
       "provider": "github",
       "owner": "TNFX1",

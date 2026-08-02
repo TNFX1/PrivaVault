@@ -27,7 +27,7 @@ jobs:
         run: npm install
 
       - name: Build & Publish Windows App
-        run: npx electron-builder --win --publish always
+        run: npx electron-builder --win --publish always --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -53,6 +53,6 @@ jobs:
         run: npm install
 
       - name: Build & Publish Linux App
-        run: npx electron-builder --linux AppImage deb rpm pacman --publish always
+        run: npx electron-builder --linux AppImage deb rpm pacman --publish always --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
