@@ -10,8 +10,8 @@ permissions:
   contents: write
 
 jobs:
-  build-windows:
-    name: Build Windows App
+  build:
+    name: Build Apps for Windows & Linux
     runs-on: windows-latest
 
     steps:
@@ -26,33 +26,32 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build & Publish Windows App
-        run: npx electron-builder --win --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Windows App
+        run: npx electron-builder --win --dir
 
-  build-linux:
-    name: Build Linux App
-    runs-on: ubuntu-latest
+      - name: Build Windows Installers
+        run: npx electron-builder --win
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Install Linux Build Tools (for rpm & pacman)
+      - name: Install Linux Build Tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y rpm fakeroot libarchive-tools
+          npm install -g electron-builder
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Build Linux Apps
+        run: npx electron-builder --linux AppImage deb rpm pacman --dir
+
+      - name: Build Linux Packages
+        run: npx electron-builder --linux AppImage deb rpm pacman
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
         with:
-          node-version: 20
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build & Publish Linux App
-        run: npx electron-builder --linux AppImage deb rpm pacman --publish always
+          files: |
+            dist/*.exe
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.pacman
+          draft: false
+          prerelease: false
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
