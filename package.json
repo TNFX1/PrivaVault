@@ -18,7 +18,10 @@
     "zero-knowledge",
     "vault"
   ],
-  "author": "TNFX1",
+  "author": {
+    "name": "TNFX1",
+    "email": "contact@privavault.app"
+  },
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
@@ -51,6 +54,7 @@
         "pacman"
       ],
       "category": "Utility",
+      "maintainer": "TNFX1 <contact@privavault.app>",
       "icon": "assets/logo.png",
       "synopsis": "Zero-Knowledge Desktop File Encryption Application",
       "description": "PrivaVault is a high-performance, local stream encryption desktop application using AES-256-GCM and PBKDF2.",
