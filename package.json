@@ -24,26 +24,28 @@
   },
   "license": "MIT",
   "dependencies": {
+    "archiver": "^8.0.0",
     "node-stream-zip": "^1.15.0"
   },
   "devDependencies": {
     "electron": "^28.0.0",
     "electron-builder": "^24.9.0"
   },
-  "build": {
-    "appId": "com.privavault.app",
-    "productName": "PrivaVault",
-    "files": [
-      "**/*",
-      "!assets/preview.png"
-    ],
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
-      "icon": "assets/logo.png"
-    },
+"build": {
+  "appId": "com.privavault.app",
+  "productName": "PrivaVault",
+  "directories": {
+    "output": "dist"
+  },
+  "win": {
+    "target": ["nsis", "portable"],
+    "icon": "assets/logo.ico" 
+  },
+  "linux": {
+    "target": ["AppImage", "deb", "rpm"],
+    "icon": "assets/logo.png"
+  }
+}
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
