@@ -2,7 +2,6 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const archiver = require('archiver');
 const JSZip = require('jszip');
 
 let mainWindow;
@@ -65,6 +64,10 @@ ipcMain.handle('select-vault-file', async () => {
 
 ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, iterations }) => {
   try {
+    // Dynamically import ES Module archiver to prevent ERR_REQUIRE_ESM
+    const archiverModule = await import('archiver');
+    const archiver = archiverModule.default || archiverModule;
+
     const ext = customExt ? customExt.replace(/^\./, '') : 'pvault';
     const iter = iterations ? parseInt(iterations, 10) : 100000;
 
@@ -85,12 +88,12 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     const outputStream = fs.createWriteStream(saveResult.filePath);
 
-    // Header Yazma (Salt + IV)
+    // Write Salt and IV at the header
     outputStream.write(salt);
     outputStream.write(iv);
 
     const archive = archiver('zip', {
-      zlib: { level: 1 } // Hizli ve dusuk bellek kullanimi
+      zlib: { level: 1 }
     });
 
     let processedFiles = 0;
@@ -105,7 +108,6 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
     return new Promise((resolve) => {
       outputStream.on('close', () => {
         const authTag = cipher.getAuthTag();
-        // Encrypted verinin en sonuna Auth Tag ekleme
         fs.appendFileSync(saveResult.filePath, authTag);
         sendProgress(100, 'Complete');
         resolve({ success: true, count: filePaths.length });
@@ -115,7 +117,6 @@ ipcMain.handle('encrypt-file', async (event, { filePaths, password, customExt, i
         resolve({ success: false, error: err.message });
       });
 
-      // Stream Borulamasi: Archiver -> AES-256-GCM -> Disk File
       archive.pipe(cipher).pipe(outputStream, { end: false });
 
       for (const filePath of filePaths) {
