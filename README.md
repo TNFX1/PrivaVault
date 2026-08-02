@@ -1,58 +1,85 @@
 <div align="center">
-  <img src="logo.png" alt="PrivaVault Logo" width="130" height="130">
+  <img src="logo.png" alt="PrivaVault Logo" width="140" height="140">
   <h1>PrivaVault 🔒</h1>
   <p>
-    <b>Modern, Ultra-Secure, and Zero-Knowledge Desktop File Encryption Application</b><br>
-    <i>High-Performance Local Stream Encryption Powered by Electron & Node.js</i>
+    <b>Modern, Ultra-Secure, Zero-Knowledge Desktop File Encryption Application</b><br>
+    <i>High-Performance Offline Stream Encryption Powered by Electron & Node.js</i>
   </p>
+
   <p>
-    <a href="[https://github.com/TNFX1/PrivaVault/releases](https://github.com/TNFX1/PrivaVault/releases)"><img src="[https://img.shields.io/badge/Version-1.3.6-blue?style=for-the-badge](https://img.shields.io/badge/Version-1.3.6-blue?style=for-the-badge)" alt="Version"></a>
-    <a href="#security-architecture"><img src="[https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge](https://img.shields.io/badge/Security-AES--256--GCM-success?style=for-the-badge)" alt="Security"></a>
-    <a href="#overview"><img src="[https://img.shields.io/badge/Privacy-100%25_Local-orange?style=for-the-badge](https://img.shields.io/badge/Privacy-100%25_Local-orange?style=for-the-badge)" alt="Privacy"></a>
-    <a href="LICENSE"><img src="[https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge](https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge)" alt="License"></a>
+    <a href="https://github.com/TNFX1/PrivaVault/releases"><img src="https://img.shields.io/badge/Version-1.3.6-007ACC?style=for-the-badge&logo=github" alt="Version"></a>
+    <a href="#-security--cryptography-architecture"><img src="https://img.shields.io/badge/Security-AES--256--GCM-2ea44f?style=for-the-badge&logo=shield" alt="Security"></a>
+    <a href="#-key-features"><img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-4682B4?style=for-the-badge&logo=linux" alt="Platform"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-orange?style=for-the-badge" alt="License"></a>
   </p>
+
+  ---
 </div>
+
+## 📌 Table of Contents
+- [🌟 Overview](#-overview)
+- [✨ Key Features](#-key-features)
+- [📷 Application Preview](#-application-preview)
+- [🛡️ Security & Cryptography Architecture](#-security--cryptography-architecture)
+- [📂 Project Structure](#-project-structure)
+- [💻 Installation & Usage](#-installation--usage)
+  - [🪟 Windows Executables](#-windows-executables)
+  - [🐧 Linux Packages](#-linux-packages)
+  - [🛠️ Build from Source](#️-build-from-source)
+- [📖 How It Works](#-how-it-works)
+- [❓ Frequently Asked Questions](#-frequently-asked-questions)
+- [⚠️ Disclaimer](#️-disclaimer--limitation-of-liability)
+- [📄 License](#-license)
 
 ---
 
 ## 🌟 Overview
 
-**PrivaVault** is an advanced, desktop-native file encryption tool engineered with **Electron** and **Node.js stream processing**. It allows users to bundle, encrypt, inspect, and extract single or multiple files locally with absolute privacy.
+**PrivaVault** is an advanced, desktop-native file encryption tool engineered with **Electron** and **Node.js stream processing**. It enables users to bundle, encrypt, inspect, and extract single or multiple files locally with absolute privacy.
 
-Unlike web-based encryption tools that suffer from browser memory limitations or cloud storage services that store your data on remote servers, PrivaVault processes everything **100% offline** on your local machine using stream cryptography. Your passwords, encryption keys, and raw files never leave your device.
+> 🔒 **100% Zero-Knowledge & Offline** > Unlike web-based tools restricted by browser memory limits or cloud services storing data on remote servers, PrivaVault processes everything **locally on your device**. Passwords, encryption keys, and raw data **never leave your system**.
 
 ---
 
 ## ✨ Key Features
 
-| Feature | Description |
-| :--- | :--- |
-| 🖥️ **Native Desktop Performance** | Built with Electron & Node.js streams to process large files with minimal RAM consumption. |
-| 🐧 **Cross-Platform Support** | Full support for Windows (Installer & Portable) and all major Linux distributions (.deb, .rpm, .pacman, AppImage). |
-| 🔐 **Zero-Knowledge Privacy** | 100% local processing. Passwords, encryption keys, and raw files never leave your system. |
-| 📦 **Vault Multi-File Container** | Bundle multiple files into a single encrypted vault archive with custom extensions (`.pvault`, `.enc`, etc.). |
-| 🔍 **Vault Content Inspection** | Safely inspect and preview encrypted container contents and metadata without extracting everything. |
-| 🎯 **Selective & Batch Extraction** | Extract specific individual files or unpack all files into a directory or ZIP archive. |
-| 🛡️ **Military-Grade Security** | **AES-256-GCM** authenticated stream encryption combined with **PBKDF2-SHA256** key derivation. |
-| ⚡ **Real-Time Progress Indicator** | Visual feedback with live progress bars during encryption and decryption tasks. |
+| Feature | Highlight | Description |
+| :--- | :--- | :--- |
+| 🖥️ **Native Performance** | **Node.js Streams** | Process multi-gigabyte files chunk-by-chunk with minimal RAM footprint. |
+| 🐧 **Cross-Platform** | **Windows & Linux** | Support for Windows Installers, Portable executables, `.deb`, `.rpm`, `.pacman`, and `AppImage`. |
+| 🔐 **Zero-Knowledge** | **100% Offline** | Complete privacy guarantee. No telemetry, network calls, or analytics. |
+| 📦 **Vault Multi-Container** | **Bundle Any File** | Combine multiple files into a single custom vault container (`.pvault`, `.enc`, etc.). |
+| 🔍 **Container Inspection** | **Safe Preview** | Inspect file listings, metadata, and container structures without extracting files to disk. |
+| 🎯 **Selective Extraction** | **Batch / Single** | Unpack individual files selectively or extract all contents into a folder or `.zip` archive. |
+| 🛡️ **Military-Grade Spec** | **AES-256-GCM** | Authenticated stream encryption coupled with **PBKDF2-SHA256** key derivation. |
+| ⚡ **Live Feedback** | **Real-Time UI** | Visual progress indicators and speed feedback during heavy encryption jobs. |
 
 ---
 
 ## 📷 Application Preview
 
 <div align="center">
-  <img src="assets/preview.png" alt="PrivaVault Interface Preview" width="420" style="border-radius: 8px;">
+  <img src="assets/preview.png" alt="PrivaVault Interface Preview" width="540" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
 </div>
 
 ---
 
 ## 🛡️ Security & Cryptography Architecture
 
-PrivaVault enforces strict cryptographic protocols to ensure data integrity and confidentiality:
+PrivaVault enforces high-level cryptographic standards to guarantee confidentiality and data integrity:
 
-1. **AES-256-GCM (Galois/Counter Mode):** Provides symmetric encryption paired with message authentication. Any byte-level modification or corrupt file structure triggers an immediate cryptographic validation error.
-2. **PBKDF2-SHA256 Key Derivation:** Password-based key derivation using high iteration counts (e.g., 100,000+ iterations) to thwart brute-force and dictionary attacks.
-3. **Dynamic Header Structure:** Every encrypted container generated by PrivaVault includes a dynamic header storing unique 16-byte Salt, 12-byte IV, Iteration metadata, and a 16-byte Authentication Tag.
+```text
+  [ User Password ] ──► [ Salt (16-Byte) ] ──► [ PBKDF2-SHA256 (100k+ Iterations) ] ──► [ Derived 256-Bit Key ]
+                                                                                                  │
+  [ Raw Data File Stream ] ─────────────────► [ AES-256-GCM Stream Engine ] ◄────────────────────────┘
+                                                         │
+                                                         ▼
+                       [ Salt | IV | Iterations | Ciphertext Stream | 16-Byte Auth Tag ] ──► (.pvault)
+```
+
+1. **AES-256-GCM (Galois/Counter Mode):** Symmetric encryption paired with cryptographic authentication. Any byte-level alteration or corruption triggers an instant validation error during decryption.
+2. **PBKDF2-SHA256 Key Derivation:** Password hashing using configurable iteration counts (100,000+ iterations recommended) to prevent dictionary and GPU-accelerated brute-force attacks.
+3. **Dynamic Dynamic Header Structure:** Every `.pvault` file incorporates a structured header storing key metadata (16-byte Salt, 12-byte IV, Iteration count, and 16-byte Auth Tag).
 
 ---
 
@@ -62,32 +89,29 @@ PrivaVault enforces strict cryptographic protocols to ensure data integrity and 
 PrivaVault/
 ├── .github/
 │   └── workflows/
-│       └── build.yml       # Automated GitHub Release CI/CD pipeline
-├── assets/                 # Graphics and UI preview assets
-│   └── preview.png         # Application preview image
-├── index.html              # Frontend user interface (HTML5 / CSS3 / JS)
-├── main.js                 # Electron main process & IPC handlers
-├── preload.js              # Secure IPC bridge (contextBridge)
-├── logo.ico                # Executable application icon
-├── logo.png                # Application branding logo
-├── package.json            # Dependencies and electron-builder config
-└── README.md               # Project documentation
+│       └── build.yml       # GitHub Actions CI/CD release workflow
+├── assets/                 # App logos and interface preview graphics
+│   ├── logo.png
+│   └── preview.png
+├── index.html              # Modern User Interface (HTML5 / CSS3 / JS)
+├── main.js                 # Electron main process & IPC message handlers
+├── preload.js              # Context-isolated secure IPC bridge
+├── logo.ico                # Executable binary icon
+├── package.json            # Manifest, dependencies, and electron-builder setup
+└── README.md               # Application documentation
 ```
 
 ---
 
 ## 💻 Installation & Usage
 
-Head over to the [Releases](https://github.com/TNFX1/PrivaVault/releases) page to download the latest prebuilt binaries for your platform.
+Visit the official [Releases](https://github.com/TNFX1/PrivaVault/releases) section to download prebuilt packages for your system.
 
-### Option 1: Download Prebuilt Binaries
+### 🪟 Windows Executables
+- `PrivaVault-Setup-1.3.6.exe` *(Standard Windows Installer)*
+- `PrivaVault-Portable-1.3.6.exe` *(Portable Executable – No Installation Required)*
 
-#### 🪟 Windows Executables
-- `PrivaVault-Setup-1.3.6.exe` (Standard Windows Installer)
-- `PrivaVault-Portable-1.3.6.exe` (Portable Executable – No Installation Required)
-
-#### 🐧 Linux Packages & Binaries
-PrivaVault supports all major Linux distributions through native packages and portable formats:
+### 🐧 Linux Packages & Binaries
 
 - **Ubuntu / Debian / Linux Mint (`.deb`):**
   ```bash
@@ -104,19 +128,32 @@ PrivaVault supports all major Linux distributions through native packages and po
   sudo pacman -U ./PrivaVault-1.3.6.pacman
   ```
 
-- **Universal AppImage (Any Linux Distro):**
+- **Universal AppImage (Any Linux Distribution):**
   ```bash
   chmod +x PrivaVault-1.3.6.AppImage
   ./PrivaVault-1.3.6.AppImage
   ```
 
-### Option 2: Build from Source (Developers)
+---
+
+### 🛠️ Build from Source
+
+Requirements: **Node.js v18+** & **npm**
 
 ```bash
-git clone https://github.com/TNFX1/PrivaVault.git
+# Clone the repository
+git clone [https://github.com/TNFX1/PrivaVault.git](https://github.com/TNFX1/PrivaVault.git)
+
+# Navigate into project directory
 cd PrivaVault
+
+# Install dependencies
 npm install
+
+# Run application in development mode
 npm start
+
+# Build production binaries
 npm run build
 ```
 
@@ -125,50 +162,53 @@ npm run build
 ## 📖 How It Works
 
 ### 🔐 Encrypting Files (Creating a Vault)
-1. Launch **PrivaVault** and navigate to the **Encrypt** tab.
-2. Click **Select Files** to pick one or more files to protect.
-3. Enter your password and choose your preferred PBKDF2 iterations (e.g., 100,000+).
-4. Set a custom container extension if desired (default: `.pvault`).
-5. Click **Encrypt & Save** to stream-encrypt your package.
+1. Open **PrivaVault** and switch to the **Encrypt** tab.
+2. Click **Select Files** to add one or more files to protect.
+3. Set a strong password and iteration count (default: `100,000`).
+4. Choose your custom file extension (default: `.pvault`).
+5. Click **Encrypt & Save** to stream-encrypt your archive.
 
 ### 🔓 Inspecting & Extracting Vaults
-1. Go to the **Decrypt / Vault Manager** tab.
-2. Load your encrypted `.pvault` file and enter your password.
-3. **Inspect Vault:** View the embedded file tree and individual file sizes.
-4. **Extract Single File:** Extract only the selected file directly to your target destination.
-5. **Extract All:** Extract the entire container into a folder or unencrypted `.zip` archive.
+1. Switch to the **Decrypt / Vault Manager** tab.
+2. Select your encrypted file (`.pvault`) and enter the password.
+3. **Inspect Content:** Inspect embedded directory structures and individual file sizes securely.
+4. **Selective Extract:** Unpack a specific file directly to your target path.
+5. **Extract All:** Unpack the whole archive to a specified directory or a ZIP container.
 
 ---
 
-## ❓ Frequently Asked Questions (FAQ)
+## ❓ Frequently Asked Questions
 
 <details>
-  <summary><b>Q: What happens if I forget my password?</b></summary>
-  <p>PrivaVault uses zero-knowledge encryption. Because your password is never stored anywhere, forgotten passwords <b>cannot</b> be recovered by anyone.</p>
+  <summary><b>Q: What happens if I forget my encryption password?</b></summary>
+  <br>
+  PrivaVault operates on strict zero-knowledge principles. Because no keys or recovery backdoors are stored anywhere, forgotten passwords <b>cannot be recovered under any circumstances</b>.
 </details>
 
 <details>
-  <summary><b>Q: Is there a file size limit for encryption?</b></summary>
-  <p>No. Thanks to Node.js stream processing, PrivaVault streams data chunk-by-chunk directly from disk to disk, allowing you to encrypt massive multi-gigabyte files smoothly.</p>
+  <summary><b>Q: Is there a maximum file size limit for encryption?</b></summary>
+  <br>
+  No! Thanks to Node.js stream processing, data is read and encrypted chunk-by-chunk from disk. You can encrypt files exceeding 50GB+ smoothly with low memory usage.
 </details>
 
 <details>
-  <summary><b>Q: Does PrivaVault send any data over the internet?</b></summary>
-  <p>No. PrivaVault functions 100% offline. No servers, network calls, or analytics tools are used.</p>
+  <summary><b>Q: Does PrivaVault make network calls or store telemetry?</b></summary>
+  <br>
+  No. PrivaVault functions 100% offline. No telemetry, external API requests, or tracking mechanisms exist in the codebase.
 </details>
 
 ---
 
 ## ⚠️ Disclaimer & Limitation of Liability
 
-**PrivaVault** is provided "as is", without warranty of any kind, express or implied.
+**PrivaVault** is provided **"as is"**, without warranty of any kind, express or implied.
 
-- **Data Safety:** Users are solely responsible for retaining backups of their original files and remembering their encryption passwords.
-- **Zero-Knowledge Architecture:** Because encryption is handled locally without password recovery mechanisms, forgotten passwords or corrupted files cannot be recovered by the developers.
-- **No Liability:** In no event shall the authors or copyright holders be liable for any data loss, file corruption, lost passwords, or any direct/indirect damages arising from the use of this software.
+- **Data Safety:** Users are solely responsible for keeping safe backups of their original unencrypted files and maintaining records of their passwords.
+- **Zero-Knowledge Warning:** Due to local zero-knowledge processing, forgotten passwords or corrupted files cannot be recovered by the developers.
+- **No Liability:** In no event shall the authors or copyright holders be liable for any data loss, file corruption, lost passwords, or direct/indirect damages arising from the use of this software.
 
 ---
 
 ## 📄 License
 
-This project is open-source and released under the [MIT License](LICENSE).
+Distributed under the open-source **[MIT License](LICENSE)**.
