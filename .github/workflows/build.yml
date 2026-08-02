@@ -10,8 +10,33 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build All Platforms & Release
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Windows App
+        run: npx electron-builder --win --publish never
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: dist/*.exe
+
+  build-linux:
+    name: Build Linux
     runs-on: ubuntu-latest
 
     steps:
@@ -31,13 +56,38 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build Linux Apps
+      - name: Build Linux App
         run: npx electron-builder --linux AppImage deb rpm pacman --publish never
 
-      - name: Build Windows Apps
-        run: npx electron-builder --win --publish never
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.pacman
 
-      - name: Upload All Assets to Release
+  release:
+    name: Publish Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifacts
+          path: dist
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-artifacts
+          path: dist
+
+      - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
