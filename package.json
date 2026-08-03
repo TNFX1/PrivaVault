@@ -1,6 +1,6 @@
 {
   "name": "privavault",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "Modern, ultra-secure & zero-knowledge desktop file encryption app",
   "main": "main.js",
   "scripts": {
