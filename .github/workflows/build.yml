@@ -28,11 +28,9 @@ jobs:
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-artifacts
+          name: release-assets
           path: |
-            dist/PrivaVault-Setup-*.exe
-            dist/PrivaVault-Portable-*.exe
-          retention-days: 1
+            dist/*.exe
 
   build-linux:
     name: Build Linux Packages
@@ -62,12 +60,11 @@ jobs:
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-artifacts
+          name: release-assets
           path: |
-            dist/PrivaVault-*.deb
-            dist/PrivaVault-*.rpm
-            dist/PrivaVault-*.AppImage
-          retention-days: 1
+            dist/*.deb
+            dist/*.rpm
+            dist/*.AppImage
 
   publish-release:
     name: Publish Clean Release
@@ -76,19 +73,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
-          path: release-assets/
-          merge-multiple: true
+          name: release-assets
+          path: release-files
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release-assets/*
+          files: release-files/*
           overwrite: true
           generate_release_notes: true
         env:
