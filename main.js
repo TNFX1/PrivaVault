@@ -19,28 +19,36 @@ if (process.platform === 'win32' && process.argv.length >= 2) {
 }
 
 function getAppIcon() {
-  const paths = [
-    path.join(__dirname, 'assets', 'logo.ico'),
-    path.join(__dirname, 'assets', 'logo.png'),
-    path.join(__dirname, 'logo.ico'),
-    path.join(__dirname, 'logo.png')
-  ];
+  const pngPath = path.join(__dirname, 'assets', 'logo.png');
+  const icoPath = path.join(__dirname, 'assets', 'logo.ico');
 
-  for (const iconPath of paths) {
-    if (fs.existsSync(iconPath)) {
-      try {
-        const img = nativeImage.createFromPath(iconPath);
-        if (!img.isEmpty()) {
-          return { img, path: iconPath };
-        }
-      } catch (e) {
-        console.error('Icon loading error:', e);
-      }
+  let windowImg = null;
+  let trayImg = null;
+
+  if (fs.existsSync(pngPath)) {
+    try {
+      windowImg = nativeImage.createFromPath(pngPath);
+      // Tray (görev tepsisi) ikonunu biraz daha optimize boyutta oluşturuyoruz
+       trayImg = windowImg.resize({ width: 48, height: 48, quality: 'best' });
+    } catch (e) {
+      console.error('PNG icon loading error:', e);
     }
   }
-  return { img: null, path: null };
-}
 
+  if ((!windowImg || windowImg.isEmpty()) && fs.existsSync(icoPath)) {
+    try {
+      windowImg = nativeImage.createFromPath(icoPath);
+      trayImg = windowImg.resize({ width: 48, height: 48, quality: 'best' });
+    } catch (e) {
+      console.error('ICO icon loading error:', e);
+    }
+  }
+
+  return {
+    windowImg: windowImg && !windowImg.isEmpty() ? windowImg : undefined,
+    trayImg: trayImg && !trayImg.isEmpty() ? trayImg : undefined
+  };
+}
 function updateTrayMenu(lang) {
   if (!tray) return;
   currentLanguage = lang || currentLanguage;
@@ -62,7 +70,7 @@ function updateTrayMenu(lang) {
 }
 
 function createWindow() {
-  const { img: windowIcon } = getAppIcon();
+  const { windowImg, trayImg } = getAppIcon();
   const sysLocale = app.getLocale() || 'en';
   currentLanguage = sysLocale.toLowerCase().startsWith('tr') ? 'tr' : 'en';
 
@@ -70,7 +78,7 @@ function createWindow() {
     width: 620,
     height: 940,
     resizable: false,
-    icon: windowIcon || undefined,
+    icon: windowImg, // Pencere ve görev çubuğu için PNG aktif
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -81,10 +89,9 @@ function createWindow() {
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadFile('index.html');
 
-  if (windowIcon) {
+  if (trayImg) {
     try {
-      const trayImage = windowIcon.resize({ width: 32, height: 32 });
-      tray = new Tray(trayImage);
+      tray = new Tray(trayImg);
       updateTrayMenu(currentLanguage);
       tray.on('double-click', () => mainWindow.show());
     } catch (err) {
@@ -310,9 +317,6 @@ ipcMain.handle('encrypt-files', async (event, { filePaths, password, iterations,
   }
 });
 
-/**
- * HIZLI ŞİFRE DOĞRULAMA (Fast Verification)
- */
 async function verifyVaultPasswordFast(filePath, password) {
   const fd = fs.openSync(filePath, 'r');
   const fileSize = fs.statSync(filePath).size;
@@ -491,7 +495,7 @@ ipcMain.handle('extract-single-file', async (event, { filePath, password, entryN
 ipcMain.handle('decrypt-vault', async (event, { filePath, password, mode }) => {
   let tempZipPath = null;
   try {
-    sendProgress(5, 'Şifre doğrulanıyor / Verifying password...');
+    sendProgress(5, 'Verifying password...');
     await verifyVaultPasswordFast(filePath, password);
 
     if (mode === 'single') {
@@ -505,10 +509,10 @@ ipcMain.handle('decrypt-vault', async (event, { filePath, password, mode }) => {
         return { success: false, status: 'canceled' };
       }
 
-      sendProgress(20, 'Şifre çözülüyor / Decrypting archive...');
+      sendProgress(20, 'Decrypting archive...');
       tempZipPath = await decryptToTempZip(filePath, password);
 
-      sendProgress(60, 'Arşiv içeriği okunuyor / Reading archive entries...');
+      sendProgress(60, 'Reading archive entries...');
       const zip = new StreamZip.async({ file: tempZipPath });
       const entries = await zip.entries();
       const entryKeys = Object.keys(entries);
@@ -519,14 +523,12 @@ ipcMain.handle('decrypt-vault', async (event, { filePath, password, mode }) => {
       }
 
       const firstEntry = entryKeys[0];
-      const realFileName = path.basename(firstEntry);
 
-      sendProgress(80, 'Dosya dışarı aktarılıyor / Extracting file...');
+      sendProgress(80, 'Extracting file...');
       await zip.extract(firstEntry, saveResult.filePath);
       await zip.close();
 
     } else if (mode === 'zip') {
-      // YENİ EKLENEN ZIP OLARAK İNDİRME MODU
       const saveResult = await dialog.showSaveDialog(mainWindow, {
         title: 'Save Decrypted ZIP',
         defaultPath: `Decrypted_${new Date().toISOString().slice(0, 10)}.zip`,
@@ -538,10 +540,10 @@ ipcMain.handle('decrypt-vault', async (event, { filePath, password, mode }) => {
         return { success: false, status: 'canceled' };
       }
 
-      sendProgress(30, 'Şifre çözülüyor / Decrypting archive...');
+      sendProgress(30, 'Decrypting archive...');
       tempZipPath = await decryptToTempZip(filePath, password);
 
-      sendProgress(70, 'ZIP dosyası kaydediliyor / Saving ZIP file...');
+      sendProgress(70, 'Saving ZIP file...');
       fs.copyFileSync(tempZipPath, saveResult.filePath);
 
     } else {
@@ -555,10 +557,10 @@ ipcMain.handle('decrypt-vault', async (event, { filePath, password, mode }) => {
         return { success: false, status: 'canceled' };
       }
 
-      sendProgress(30, 'Şifre çözülüyor / Decrypting stream...');
+      sendProgress(30, 'Decrypting stream...');
       tempZipPath = await decryptToTempZip(filePath, password);
 
-      sendProgress(70, 'Dosyalar klasöre çıkarılıyor / Extracting files...');
+      sendProgress(70, 'Extracting files...');
       const targetFolder = folderResult.filePaths[0];
       const zip = new StreamZip.async({ file: tempZipPath });
       await zip.extract(null, targetFolder);
