@@ -20,27 +20,16 @@ if (process.platform === 'win32' && process.argv.length >= 2) {
 
 function getAppIcon() {
   const pngPath = path.join(__dirname, 'assets', 'logo.png');
-  const icoPath = path.join(__dirname, 'assets', 'logo.ico');
-
   let windowImg = null;
   let trayImg = null;
 
+  // Görev çubuğu ve pencere için KESİNLİKLE sadece PNG kullanıyoruz (ICO'ya düşmüyor)
   if (fs.existsSync(pngPath)) {
     try {
       windowImg = nativeImage.createFromPath(pngPath);
-      // Tray (görev tepsisi) ikonunu biraz daha optimize boyutta oluşturuyoruz
-       trayImg = windowImg.resize({ width: 48, height: 48, quality: 'best' });
-    } catch (e) {
-      console.error('PNG icon loading error:', e);
-    }
-  }
-
-  if ((!windowImg || windowImg.isEmpty()) && fs.existsSync(icoPath)) {
-    try {
-      windowImg = nativeImage.createFromPath(icoPath);
       trayImg = windowImg.resize({ width: 48, height: 48, quality: 'best' });
     } catch (e) {
-      console.error('ICO icon loading error:', e);
+      console.error('PNG icon loading error:', e);
     }
   }
 
@@ -49,6 +38,7 @@ function getAppIcon() {
     trayImg: trayImg && !trayImg.isEmpty() ? trayImg : undefined
   };
 }
+
 function updateTrayMenu(lang) {
   if (!tray) return;
   currentLanguage = lang || currentLanguage;

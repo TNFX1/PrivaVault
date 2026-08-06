@@ -102,8 +102,8 @@ PrivaVault/
 │   └── workflows/
 │       └── build.yml       # GitHub Actions CI/CD release workflow (Windows)
 ├── assets/                 # App logos and interface preview graphics
-│   ├── logo.png
 │   ├── logo.ico
+│   ├── logo.png
 │   └── preview.png
 ├── index.html              # Modern User Interface (HTML5 / CSS3 / JS)
 ├── main.js                 # Electron main process & IPC message handlers
