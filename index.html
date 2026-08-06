@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivaVault - Secure Local Encryption</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #121316;
+            --surface: #1c1d22;
+            --surface-hover: #26272f;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #2e3038;
+            --input-bg: #141518;
+            --success-bg: #064e3b;
+            --success-text: #6ee7b7;
+            --success-border: #047857;
+            --error-bg: #7f1d1d;
+            --error-text: #fca5a5;
+            --error-border: #b91c1c;
+            --info-bg: #1e3a8a;
+            --info-text: #93c5fd;
+            --info-border: #1d4ed8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            user-select: none;
+        }
+
+        .card {
+            background-color: var(--surface);
+            width: 100%;
+            max-width: 500px;
+            padding: 32px 28px;
+            border-radius: 20px;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-tools {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .tool-btn, .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--input-bg);
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn:hover, .lang-switch:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+        }
+
+        .tool-btn svg, .lang-switch svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .lang-switch select, select.app-select {
+            background: transparent;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            color: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 24px;
+        }
+
+        .header img.app-logo {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            margin-bottom: 12px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .header p { font-size: 13px; color: var(--text-muted); }
+
+        .tabs {
+            display: flex;
+            background-color: var(--input-bg);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--surface);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .tab-content.active { display: block; }
+        .tab-content.show { opacity: 1; transform: translateY(0); }
+
+        .form-group { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: var(--input-bg);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .file-input-wrapper.dragover {
+            border-color: var(--primary);
+            background-color: rgba(37, 99, 235, 0.12);
+        }
+
+        .browse-buttons-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .browse-btn {
+            flex: 1;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .browse-btn.folder {
+            background: #334155;
+        }
+        .browse-btn.folder:hover {
+            background: #475569;
+        }
+        .browse-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .file-name-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: none;
+            text-align: center;
+        }
+
+        .password-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-password-btn {
+            position: absolute;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .toggle-password-btn.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .toggle-password-btn:hover { color: var(--text-main); }
+        .toggle-password-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+        .strength-container {
+            margin-top: 6px;
+            height: 4px;
+            width: 100%;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        .strength-text {
+            font-size: 11px;
+            margin-top: 4px;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        input[type="password"], input[type="text"], select.full-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .password-input-container input { padding-right: 40px; }
+        select.full-select option { background-color: var(--surface); color: var(--text-main); }
+
+        input:focus, select.full-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn:disabled { background-color: #334155; cursor: not-allowed; opacity: 0.6; }
+
+        .file-list {
+            margin-top: 14px;
+            max-height: 180px;
+            overflow-y: auto;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            gap: 10px;
+        }
+
+        .file-item:last-child { border-bottom: none; }
+        
+        .file-item-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .file-item-info svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            fill: var(--text-muted);
+        }
+
+        .file-item-info span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-item .mini-extract-btn {
+            background: rgba(37, 99, 235, 0.2);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .file-item .mini-extract-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-row .btn {
+            flex: 1;
+            font-size: 12px;
+            margin-top: 0;
+            padding: 10px;
+        }
+
+        .progress-wrapper {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .progress-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2563eb, #60a5fa);
+            border-radius: 6px;
+            transition: width 0.2s ease;
+        }
+
+        #status {
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+            word-break: break-all;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #status.success { background-color: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+        #status.error { background-color: var(--error-bg); color: var(--error-text); border: 1px solid var(--error-border); }
+        #status.info { background-color: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-backdrop.show { display: flex; opacity: 1; }
+
+        .modal {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 420px;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-backdrop.show .modal { transform: scale(1); }
+        .modal h2 { font-size: 18px; margin-bottom: 16px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="top-tools">
+            <button class="tool-btn" onclick="openSettingsModal()" title="Settings">
+                <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+            </button>
+            <div class="lang-switch">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <select id="langSelect" class="app-select" onchange="changeLanguage(this.value)">
+                    <option value="en" selected>EN</option>
+                    <option value="tr">TR</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="header">
+            <img src="assets/logo.png" alt="Logo" class="app-logo" onerror="this.style.display='none'">
+            <h1>PrivaVault</h1>
+            <p id="subTitle">Secure Local Stream Encryption</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="tabEncBtn" onclick="switchTab('encrypt')">Encrypt</button>
+            <button class="tab-btn" id="tabDecBtn" onclick="switchTab('decrypt')">Decrypt</button>
+        </div>
+
+        <div id="tabEncrypt" class="tab-content active show">
+            <div class="form-group">
+                <label id="lblSelectFiles">Select Files or Folders</label>
+                <div class="file-input-wrapper" id="encDropZone">
+                    <div class="browse-buttons-row">
+                        <button class="browse-btn" id="btnBrowseFiles" onclick="handleSelectFiles()">Add Files</button>
+                        <button class="browse-btn folder" id="btnBrowseFolders" onclick="handleSelectFolders()">Add Folder</button>
+                    </div>
+                    <span class="file-name-text" id="encFileNameText">No file/folder selected...</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="lblEncPass">Encryption Password</label>
+                <div class="password-input-container">
+                    <input type="password" id="encPassword" placeholder="Enter a strong password" oninput="handlePasswordInput()">
+                    <button type="button" class="toggle-password-btn" id="toggleEncPass" onclick="togglePasswordVisibility('encPassword', 'toggleEncPass')">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </button>
+                </div>
+                <div class="strength-container">
+                    <div class="strength-bar" id="strengthBar"></div>
+                </div>
+                <span class="strength-text" id="strengthText"></span>
+            </div>
+            <div class="form-group">
+                <label id="lblConfirmPass">Confirm Password</label>
+                <div class="password-input-container">
+                    <input type="password" id="encPasswordConfirm" placeholder="Confirm password" oninput="checkPasswordMatch()">
+                    <button type="button" class="toggle-password-btn" id="toggleConfirmPass" onclick="togglePasswordVisibility('encPasswordConfirm', 'toggleConfirmPass')">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <button class="btn" id="btnEncrypt" onclick="startEncryption()">Pack & Encrypt</button>
+        </div>
+
+        <div id="tabDecrypt" class="tab-content">
+            <div class="form-group">
+                <label id="lblSelectVault">Select Vault File</label>
+                <div class="file-input-wrapper" id="decDropZone">
+                    <div class="browse-buttons-row">
+                        <button class="browse-btn" id="btnBrowseDec" onclick="handleSelectVaultFile()">Browse</button>
+                    </div>
+                    <span class="file-name-text" id="decFileNameText">No vault file selected...</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="lblDecPass">Decryption Password</label>
+                <div class="password-input-container">
+                    <input type="password" id="decPassword" placeholder="Enter your password" oninput="handleDecPasswordInput()">
+                    <button type="button" class="toggle-password-btn" id="toggleDecPass" onclick="togglePasswordVisibility('decPassword', 'toggleDecPass')">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn" id="btnInspect" onclick="inspectVaultContent()">Open & Inspect Content</button>
+
+            <div id="vaultContent" style="display: none; margin-top: 14px;">
+                <div class="file-list" id="vaultFileList"></div>
+                <div class="action-row">
+                    <button class="btn" id="btnExtractFolder" onclick="extractAll('folder')">Extract All to Folder</button>
+                    <button class="btn" id="btnExtractZip" onclick="extractAll('zip')" style="background-color: #334155;">Download All as ZIP</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-wrapper" id="progressWrapper">
+            <div class="progress-header">
+                <span id="progressStatusText">Processing...</span>
+                <span id="progressPercentText">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <div class="progress-details">
+                <span id="progressSpeedText">-- MB/s</span>
+                <span id="progressEtaText">ETA: --</span>
+            </div>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <div class="modal-backdrop" id="settingsModal" onclick="closeSettingsOnBackdrop(event)">
+        <div class="modal">
+            <h2 id="settingsTitle">Settings</h2>
+            <div class="form-group">
+                <label id="lblSecurityLevel">Key Derivation Rounds (Security Level)</label>
+                <select id="securityLevelSelect" class="full-select">
+                    <option value="100000" id="optSec100k">100,000 Rounds (Standard)</option>
+                    <option value="300000" id="optSec300k">300,000 Rounds (High Security)</option>
+                    <option value="600000" id="optSec600k">600,000 Rounds (Ultra Security)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="lblCustomExt">Default Encrypted File Extension</label>
+                <select id="customExtSelect" class="full-select">
+                    <option value="pvault" id="optExtPvault" selected>.pvault (PrivaVault Default)</option>
+                    <option value="vault" id="optExtVault">.vault (Standard Vault)</option>
+                    <option value="enc" id="optExtEnc">.enc (Encrypted File)</option>
+                    <option value="bin" id="optExtBin">.bin (Binary Data)</option>
+                </select>
+            </div>
+            <button class="btn" id="btnSaveSettings" onclick="saveSettings()">Save</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedEncFiles = [];
+        let selectedVaultPath = null;
+        let currentLang = 'en';
+
+        const i18n = {
+            en: {
+                subTitle: "Secure Local Stream Encryption",
+                tabEncrypt: "Encrypt",
+                tabDecrypt: "Decrypt",
+                lblSelectFiles: "Select Files or Folders",
+                lblEncPass: "Encryption Password",
+                lblConfirmPass: "Confirm Password",
+                lblSelectVault: "Select Vault File",
+                lblDecPass: "Decryption Password",
+                phEncPass: "Enter a strong password",
+                phConfirmPass: "Confirm password",
+                phDecPass: "Enter your password",
+                btnFiles: "Add Files",
+                btnFolders: "Add Folder",
+                btnBrowse: "Browse",
+                btnEncrypt: "Pack & Encrypt",
+                btnInspect: "Open & Inspect Content",
+                btnExtractFolder: "Extract All to Folder",
+                btnExtractZip: "Download All as ZIP",
+                settingsTitle: "Settings",
+                btnSaveSettings: "Save",
+                lblSecurityLevel: "Key Derivation Rounds (PBKDF2)",
+                lblCustomExt: "Default Encrypted Extension",
+                optSec100k: "100,000 Rounds (Standard)",
+                optSec300k: "300,000 Rounds (High Security)",
+                optSec600k: "600,000 Rounds (Ultra Security)",
+                optExtPvault: ".pvault (PrivaVault Default)",
+                optExtVault: ".vault (Standard Vault)",
+                optExtEnc: ".enc (Encrypted File)",
+                optExtBin: ".bin (Binary Data)",
+                noFile: "No file/folder selected...",
+                filesSelected: "items selected",
+                msgEncSuccess: "Successfully packed and encrypted!",
+                msgEncProgress: "Packing & encrypting...",
+                msgInspectProgress: "Decrypting archive structure...",
+                msgDone: "Complete!",
+                msgError: "Error",
+                errNoEncFile: "Please select files or folders to encrypt.",
+                errNoPass: "Please enter a password.",
+                errPassMismatch: "Passwords do not match.",
+                errNoDecFile: "Please select a vault file to decrypt.",
+                pwdWeak: "Weak password",
+                pwdMedium: "Medium password",
+                pwdStrong: "Strong password",
+                extractSingle: "Extract"
+            },
+            tr: {
+                subTitle: "Güvenli Yerel Akış Şifreleme",
+                tabEncrypt: "Şifrele",
+                tabDecrypt: "Şifre Çöz",
+                lblSelectFiles: "Dosya veya Klasör Seçin",
+                lblEncPass: "Şifreleme Parolası",
+                lblConfirmPass: "Parolayı Onayla",
+                lblSelectVault: "Kasa Dosyası Seç",
+                lblDecPass: "Kasa Şifresi",
+                phEncPass: "Güçlü bir parola girin",
+                phConfirmPass: "Parolayı tekrar girin",
+                phDecPass: "Şifrenizi girin",
+                btnFiles: "Dosya Ekle",
+                btnFolders: "Klasör Ekle",
+                btnBrowse: "Gözat",
+                btnEncrypt: "Paketle ve Şifrele",
+                btnInspect: "İçeriği Aç ve İncele",
+                btnExtractFolder: "Tümünü Klasöre Çıkar",
+                btnExtractZip: "Tümünü ZIP ile İndir",
+                settingsTitle: "Ayarlar",
+                btnSaveSettings: "Kaydet",
+                lblSecurityLevel: "Anahtar Türetme Döngüsü (PBKDF2)",
+                lblCustomExt: "Varsayılan Şifrelenmiş Uzantı",
+                optSec100k: "100.000 Tur (Standart)",
+                optSec300k: "300.000 Tur (Yüksek Güvenlik)",
+                optSec600k: "600.000 Tur (Ultra Güvenlik)",
+                optExtPvault: ".pvault (PrivaVault Varsayılan)",
+                optExtVault: ".vault (Standart Kasa)",
+                optExtEnc: ".enc (Şifrelenmiş Dosya)",
+                optExtBin: ".bin (İkili / Binary Dosya)",
+                noFile: "Dosya/Klasör seçilmedi...",
+                filesSelected: "öge seçildi",
+                msgEncSuccess: "Başarıyla paketlendi ve şifrelendi!",
+                msgEncProgress: "Paketleniyor ve şifreleniyor...",
+                msgInspectProgress: "Arşiv içeriği çözülüyor...",
+                msgDone: "Tamamlandı!",
+                msgError: "Hata",
+                errNoEncFile: "Lütfen şifrelenecek dosya veya klasör seçin.",
+                errNoPass: "Lütfen bir şifre girin.",
+                errPassMismatch: "Şifreler eşleşmiyor.",
+                errNoDecFile: "Lütfen çözülecek kasa dosyasını seçin.",
+                pwdWeak: "Zayıf şifre",
+                pwdMedium: "Orta seviye şifre",
+                pwdStrong: "Güçlü şifre",
+                extractSingle: "Çıkar"
+            }
+        };
+
+        function getFileIconSvg(filename, isDirectory) {
+            if (isDirectory || filename.endsWith('/')) {
+                return `<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>`;
+            }
+
+            const ext = filename.split('.').pop().toLowerCase();
+            const images = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'ico'];
+            const videos = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm'];
+            const audio = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'];
+            const archives = ['zip', 'rar', '7z', 'tar', 'gz', 'pvault', 'vault'];
+
+            if (images.includes(ext)) {
+                return `<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
+            } else if (videos.includes(ext)) {
+                return `<svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4zM10 15v-6l5 3-5 3z"/></svg>`;
+            } else if (audio.includes(ext)) {
+                return `<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+            } else if (archives.includes(ext)) {
+                return `<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2 6h-2v2h2v2h-2v2h-2v-2h2v-2h-2v-2h2v-2h-2V8h2v2h2v2z"/></svg>`;
+            } else {
+                return `<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>`;
+            }
+        }
+
+        function switchTab(tab) {
+            const encTab = document.getElementById('tabEncrypt');
+            const decTab = document.getElementById('tabDecrypt');
+            const encBtn = document.getElementById('tabEncBtn');
+            const decBtn = document.getElementById('tabDecBtn');
+            hideStatus();
+            if (tab === 'encrypt') {
+                decTab.classList.remove('show');
+                setTimeout(() => {
+                    decTab.classList.remove('active');
+                    encTab.classList.add('active');
+                    setTimeout(() => encTab.classList.add('show'), 10);
+                }, 200);
+                encBtn.classList.add('active');
+                decBtn.classList.remove('active');
+            } else {
+                encTab.classList.remove('show');
+                setTimeout(() => {
+                    encTab.classList.remove('active');
+                    decTab.classList.add('active');
+                    setTimeout(() => decTab.classList.add('show'), 10);
+                }, 200);
+                decBtn.classList.add('active');
+                encBtn.classList.remove('active');
+            }
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('langSelect').value = lang;
+            const t = i18n[lang];
+            document.getElementById('subTitle').textContent = t.subTitle;
+            document.getElementById('tabEncBtn').textContent = t.tabEncrypt;
+            document.getElementById('tabDecBtn').textContent = t.tabDecrypt;
+            document.getElementById('lblSelectFiles').textContent = t.lblSelectFiles;
+            document.getElementById('lblEncPass').textContent = t.lblEncPass;
+            document.getElementById('lblConfirmPass').textContent = t.lblConfirmPass;
+            document.getElementById('lblSelectVault').textContent = t.lblSelectVault;
+            document.getElementById('lblDecPass').textContent = t.lblDecPass;
+            document.getElementById('encPassword').placeholder = t.phEncPass;
+            document.getElementById('encPasswordConfirm').placeholder = t.phConfirmPass;
+            document.getElementById('decPassword').placeholder = t.phDecPass;
+            document.getElementById('btnBrowseFiles').textContent = t.btnFiles;
+            document.getElementById('btnBrowseFolders').textContent = t.btnFolders;
+            document.getElementById('btnBrowseDec').textContent = t.btnBrowse;
+            document.getElementById('btnEncrypt').textContent = t.btnEncrypt;
+            document.getElementById('btnInspect').textContent = t.btnInspect;
+            document.getElementById('btnExtractFolder').textContent = t.btnExtractFolder;
+            document.getElementById('btnExtractZip').textContent = t.btnExtractZip;
+            document.getElementById('settingsTitle').textContent = t.settingsTitle;
+            document.getElementById('btnSaveSettings').textContent = t.btnSaveSettings;
+            document.getElementById('lblSecurityLevel').textContent = t.lblSecurityLevel;
+            document.getElementById('lblCustomExt').textContent = t.lblCustomExt;
+            document.getElementById('optSec100k').textContent = t.optSec100k;
+            document.getElementById('optSec300k').textContent = t.optSec300k;
+            document.getElementById('optSec600k').textContent = t.optSec600k;
+            document.getElementById('optExtPvault').textContent = t.optExtPvault;
+            document.getElementById('optExtVault').textContent = t.optExtVault;
+            document.getElementById('optExtEnc').textContent = t.optExtEnc;
+            document.getElementById('optExtBin').textContent = t.optExtBin;
+        }
+
+        function togglePasswordVisibility(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.style.color = 'var(--primary)';
+            } else {
+                input.type = 'password';
+                btn.style.color = 'var(--text-muted)';
+            }
+        }
+
+        function handlePasswordInput() {
+            const val = document.getElementById('encPassword').value;
+            const btn = document.getElementById('toggleEncPass');
+            if (val.length > 0) btn.classList.add('visible');
+            else btn.classList.remove('visible');
+            updatePasswordStrength(val);
+        }
+
+        function handleDecPasswordInput() {
+            const val = document.getElementById('decPassword').value;
+            const btn = document.getElementById('toggleDecPass');
+            if (val.length > 0) btn.classList.add('visible');
+            else btn.classList.remove('visible');
+        }
+
+        function updatePasswordStrength(pass) {
+            const bar = document.getElementById('strengthBar');
+            const text = document.getElementById('strengthText');
+            const t = i18n[currentLang];
+            if (!pass) {
+                bar.style.width = '0%';
+                text.innerText = '';
+                return;
+            }
+            let score = 0;
+            if (pass.length >= 8) score++;
+            if (pass.length >= 12) score++;
+            if (/[A-Z]/.test(pass)) score++;
+            if (/[0-9]/.test(pass)) score++;
+            if (/[^A-Za-z0-9]/.test(pass)) score++;
+
+            if (score <= 2) {
+                bar.style.width = '33%';
+                bar.style.background = '#fca5a5';
+                text.innerText = t.pwdWeak;
+            } else if (score <= 4) {
+                bar.style.width = '66%';
+                bar.style.background = '#fde047';
+                text.innerText = t.pwdMedium;
+            } else {
+                bar.style.width = '100%';
+                bar.style.background = '#6ee7b7';
+                text.innerText = t.pwdStrong;
+            }
+        }
+
+        function checkPasswordMatch() {
+            const confirmVal = document.getElementById('encPasswordConfirm').value;
+            if(confirmVal.length > 0) {
+                document.getElementById('toggleConfirmPass').classList.add('visible');
+            } else {
+                document.getElementById('toggleConfirmPass').classList.remove('visible');
+            }
+        }
+
+        async function handleSelectFiles() {
+            const files = await window.electronAPI.selectFiles();
+            if (files && files.length > 0) {
+                updateEncFilesList([...selectedEncFiles, ...files]);
+            }
+        }
+
+        async function handleSelectFolders() {
+            const folders = await window.electronAPI.selectFolders();
+            if (folders && folders.length > 0) {
+                updateEncFilesList([...selectedEncFiles, ...folders]);
+            }
+        }
+
+        function updateEncFilesList(files) {
+            selectedEncFiles = [...new Set(files)];
+            const t = i18n[currentLang];
+            if (selectedEncFiles.length === 1) {
+                const name = selectedEncFiles[0].split('\\').pop().split('/').pop();
+                document.getElementById('encFileNameText').textContent = name;
+            } else if (selectedEncFiles.length > 1) {
+                document.getElementById('encFileNameText').textContent = `${selectedEncFiles.length} ${t.filesSelected}`;
+            } else {
+                document.getElementById('encFileNameText').textContent = t.noFile;
+            }
+        }
+
+        async function handleSelectVaultFile() {
+            const file = await window.electronAPI.selectVaultFile();
+            if (file) {
+                updateVaultFilePath(file);
+            }
+        }
+
+        function updateVaultFilePath(file) {
+            selectedVaultPath = file;
+            const name = file.split('\\').pop().split('/').pop();
+            document.getElementById('decFileNameText').textContent = name;
+            document.getElementById('vaultContent').style.display = 'none';
+        }
+
+        async function startEncryption() {
+            const t = i18n[currentLang];
+            if (selectedEncFiles.length === 0) return showStatus(t.errNoEncFile, 'error');
+            const pass = document.getElementById('encPassword').value;
+            const passConfirm = document.getElementById('encPasswordConfirm').value;
+            if (!pass) return showStatus(t.errNoPass, 'error');
+            if (pass !== passConfirm) return showStatus(t.errPassMismatch, 'error');
+
+            const securityRounds = parseInt(document.getElementById('securityLevelSelect').value, 10) || 100000;
+            const customExtension = document.getElementById('customExtSelect').value || 'pvault';
+
+            showProgress(0, t.msgEncProgress);
+            setControlsDisabled(true);
+
+            const res = await window.electronAPI.encryptFiles({
+                filePaths: selectedEncFiles,
+                password: pass,
+                iterations: securityRounds,
+                extension: customExtension
+            });
+
+            setControlsDisabled(false);
+            if (res.success) {
+                showProgress(100, t.msgDone);
+                showStatus(t.msgEncSuccess, 'success');
+                triggerConfetti();
+                selectedEncFiles = [];
+                updateEncFilesList([]);
+                document.getElementById('encPassword').value = '';
+                document.getElementById('encPasswordConfirm').value = '';
+                handlePasswordInput();
+            } else if (res.status !== 'canceled') {
+                hideProgress();
+                showStatus(`${t.msgError}: ${res.error}`, 'error');
+            } else {
+                hideProgress();
+            }
+        }
+
+        async function inspectVaultContent() {
+            const t = i18n[currentLang];
+            if (!selectedVaultPath) return showStatus(t.errNoDecFile, 'error');
+            const pass = document.getElementById('decPassword').value;
+            if (!pass) return showStatus(t.errNoPass, 'error');
+
+            showProgress(0, t.msgInspectProgress);
+            setControlsDisabled(true);
+
+            const res = await window.electronAPI.inspectVault({
+                filePath: selectedVaultPath,
+                password: pass
+            });
+
+            setControlsDisabled(false);
+            hideProgress();
+
+            if (res.success) {
+                hideStatus();
+                const listEl = document.getElementById('vaultFileList');
+                listEl.innerHTML = '';
+                res.entries.forEach(entry => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    const iconSvg = getFileIconSvg(entry.name, entry.isDirectory);
+                    item.innerHTML = `
+                        <div class="file-item-info">
+                            ${iconSvg}
+                            <span title="${entry.name}">${entry.name} (${formatBytes(entry.size)})</span>
+                        </div>
+                        <button class="mini-extract-btn" onclick="extractSingle('${entry.name}')">${t.extractSingle}</button>
+                    `;
+                    listEl.appendChild(item);
+                });
+                document.getElementById('vaultContent').style.display = 'block';
+            } else {
+                showStatus(`${t.msgError}: ${res.error}`, 'error');
+            }
+        }
+
+        async function extractSingle(entryName) {
+            const password = document.getElementById('decPassword').value;
+            const t = i18n[currentLang];
+            showProgress(15, 'Extracting file...');
+            setControlsDisabled(true);
+
+            const res = await window.electronAPI.extractSingleFile({
+                filePath: selectedVaultPath,
+                password: password,
+                entryName: entryName
+            });
+
+            setControlsDisabled(false);
+            if (res.success) {
+                showProgress(100, t.msgDone);
+                showStatus(t.msgDone, 'success');
+                triggerConfetti();
+            } else if (res.status !== 'canceled') {
+                hideProgress();
+                showStatus(`${t.msgError}: ${res.error}`, 'error');
+            } else {
+                hideProgress();
+            }
+        }
+
+        async function extractAll(mode) {
+            const password = document.getElementById('decPassword').value;
+            const t = i18n[currentLang];
+            if (!selectedVaultPath) return showStatus(t.errNoDecFile, 'error');
+            if (!password) return showStatus(t.errNoPass, 'error');
+
+            showProgress(15, mode === 'zip' ? 'Creating ZIP archive...' : 'Extracting folder...');
+            setControlsDisabled(true);
+
+            const res = await window.electronAPI.decryptVault({
+                filePath: selectedVaultPath,
+                password: password,
+                mode: mode
+            });
+
+            setControlsDisabled(false);
+
+            if (res && res.success) {
+                showProgress(100, t.msgDone);
+                showStatus(currentLang === 'tr' ? 'İşlem başarıyla tamamlandı!' : 'Operation completed successfully!', 'success');
+                triggerConfetti();
+            } else if (res && res.status === 'canceled') {
+                hideProgress();
+                showStatus(currentLang === 'tr' ? 'İşlem iptal edildi.' : 'Operation canceled.', 'info');
+            } else {
+                hideProgress();
+                showStatus(res && res.error ? res.error : `${t.msgError}: Decryption failed`, 'error');
+            }
+        }
+
+        function showProgress(percent, text, speedBps = 0, etaSec = 0) {
+            const wrapper = document.getElementById('progressWrapper');
+            const fill = document.getElementById('progressBarFill');
+            const statusText = document.getElementById('progressStatusText');
+            const percentText = document.getElementById('progressPercentText');
+            const speedText = document.getElementById('progressSpeedText');
+            const etaText = document.getElementById('progressEtaText');
+            wrapper.style.display = 'block';
+            fill.style.width = `${percent}%`;
+            statusText.textContent = text;
+            percentText.textContent = `${Math.round(percent)}%`;
+            if (speedBps > 0) {
+                speedText.textContent = `${formatBytes(speedBps)}/s`;
+                etaText.textContent = `ETA: ${formatTime(etaSec)}`;
+            } else {
+                speedText.textContent = '-- MB/s';
+                etaText.textContent = 'ETA: --';
+            }
+        }
+
+        function hideProgress() {
+            document.getElementById('progressWrapper').style.display = 'none';
+        }
+
+        function showStatus(text, type) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.className = type;
+            status.style.display = 'block';
+        }
+
+        function hideStatus() {
+            const status = document.getElementById('status');
+            status.style.display = 'none';
+        }
+
+        function setControlsDisabled(disabled) {
+            document.querySelectorAll('input, button, select').forEach(el => {
+                if (el.id !== 'langSelect') el.disabled = disabled;
+            });
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatTime(seconds) {
+            if (!seconds || seconds <= 0) return '0s';
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return m > 0 ? `${m}m ${s}s` : `${s}s`;
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        function closeSettingsOnBackdrop(e) {
+            if (e.target.id === 'settingsModal') {
+                document.getElementById('settingsModal').classList.remove('show');
+            }
+        }
+
+        function saveSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        function setupDragAndDrop() {
+            const encDropZone = document.getElementById('encDropZone');
+            const decDropZone = document.getElementById('decDropZone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                encDropZone.addEventListener(eventName, e => e.preventDefault(), false);
+                decDropZone.addEventListener(eventName, e => e.preventDefault(), false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                encDropZone.addEventListener(eventName, () => encDropZone.classList.add('dragover'), false);
+                decDropZone.addEventListener(eventName, () => decDropZone.classList.add('dragover'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                encDropZone.addEventListener(eventName, () => encDropZone.classList.remove('dragover'), false);
+                decDropZone.addEventListener(eventName, () => decDropZone.classList.remove('dragover'), false);
+            });
+            encDropZone.addEventListener('drop', e => {
+                const files = Array.from(e.dataTransfer.files).map(f => f.path);
+                if (files.length > 0) updateEncFilesList([...selectedEncFiles, ...files]);
+            });
+            decDropZone.addEventListener('drop', e => {
+                const files = Array.from(e.dataTransfer.files).map(f => f.path);
+                if (files.length > 0 && files[0]) updateVaultFilePath(files[0]);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            let sysLang = 'en';
+            if (window.electronAPI && window.electronAPI.getAppLocale) {
+                const locale = await window.electronAPI.getAppLocale();
+                if (locale && locale.toLowerCase().startsWith('tr')) sysLang = 'tr';
+            } else if (navigator.language && navigator.language.toLowerCase().startsWith('tr')) {
+                sysLang = 'tr';
+            }
+            changeLanguage(sysLang);
+
+            setupDragAndDrop();
+
+            if (window.electronAPI && window.electronAPI.onProgress) {
+                window.electronAPI.onProgress((data) => {
+                    showProgress(data.percent, data.status, data.speedBps, data.etaSec);
+                });
+            }
+
+            if (window.electronAPI && window.electronAPI.getLaunchedFile) {
+                const launchedFile = await window.electronAPI.getLaunchedFile();
+                if (launchedFile) {
+                    const ext = launchedFile.split('.').pop().toLowerCase();
+                    if (['pvault', 'enc', 'bin', 'vault', 'dat'].includes(ext)) {
+                        switchTab('decrypt');
+                        updateVaultFilePath(launchedFile);
+                    } else {
+                        switchTab('encrypt');
+                        updateEncFilesList([launchedFile]);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
