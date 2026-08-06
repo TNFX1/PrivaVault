@@ -151,14 +151,14 @@ npm run build:win
 
 ### 🔐 Encrypting Files (Creating a Vault)
 1. Open **PrivaVault** and switch to the **Encrypt** tab.
-2. Click **Select Files** to add one or more files to protect.
+2. Click **Add Files** or **Add Folder** to add one or more files to protect.
 3. Set a strong password and iteration count (default: `100,000`).
 4. Choose your custom file extension (default: `.pvault`).
 5. Click **Encrypt & Save** to stream-encrypt your archive.
 
 ### 🔓 Inspecting & Extracting Vaults
 1. Switch to the **Decrypt / Vault Manager** tab.
-2. Select your encrypted file (`.pvault`) and enter the password.
+2. Select your encrypted file and enter the password.
 3. **Inspect Content:** Preview embedded directory structures and individual file sizes securely.
 4. **Selective Extract:** Unpack a specific file directly to your target path.
 5. **Extract All:** Unpack the whole archive to a specified directory or a ZIP container.
