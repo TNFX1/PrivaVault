@@ -4,6 +4,10 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
   <name>PrivaVault</name>
+  <developer id="io.github.tnfx1">
+    <name>TNFX1</name>
+  </developer>
+  <content_rating type="oars-1.1"/>
   <summary>Offline file encryption</summary>
   <description>
     <p>PrivaVault encrypts files and folders into password-protected vaults on your own device.

@@ -122,6 +122,52 @@ fn to_path(fp: tauri_plugin_dialog::FilePath) -> CmdResult<PathBuf> {
     fp.into_path().map_err(|e| err("internal", e.to_string()))
 }
 
+/// Ask the user where to save a file. Returns `None` if the dialog was dismissed.
+fn ask_save_path(
+    app: &AppHandle,
+    w: &WebviewWindow,
+    name: &str,
+    dir: Option<PathBuf>,
+    filter: Option<(&str, &str)>,
+) -> CmdResult<Option<PathBuf>> {
+    if let Some(d) = e2e_output_dir() {
+        return Ok(Some(d.join(name)));
+    }
+    let mut d = app.dialog().file().set_parent(w).set_file_name(name);
+    if let Some((label, ext)) = filter {
+        d = d.add_filter(label, &[ext]);
+    }
+    if let Some(dir) = dir {
+        d = d.set_directory(dir);
+    }
+    d.blocking_save_file().map(to_path).transpose()
+}
+
+/// Ask the user for a destination folder. Returns `None` if the dialog was dismissed.
+fn ask_folder(app: &AppHandle, w: &WebviewWindow, dir: Option<PathBuf>) -> CmdResult<Option<PathBuf>> {
+    if let Some(d) = e2e_output_dir() {
+        return Ok(Some(d));
+    }
+    let mut d = app.dialog().file().set_parent(w);
+    if let Some(dir) = dir {
+        d = d.set_directory(dir);
+    }
+    d.blocking_pick_folder().map(to_path).transpose()
+}
+
+/// GUI end-to-end tests (tests/gui) cannot click native dialogs. In **debug builds only**, this
+/// env var makes every save/folder dialog answer with a path inside the given directory.
+/// The code does not exist in release builds.
+#[cfg(debug_assertions)]
+fn e2e_output_dir() -> Option<PathBuf> {
+    std::env::var_os("PRIVAVAULT_E2E_OUTPUT_DIR").map(PathBuf::from)
+}
+
+#[cfg(not(debug_assertions))]
+fn e2e_output_dir() -> Option<PathBuf> {
+    None
+}
+
 /// Keep only a plain file name (no directories) for dialog suggestions coming from the UI.
 fn safe_file_name(s: &str, fallback: &str) -> String {
     let base = s.rsplit(['/', '\\']).next().unwrap_or("").trim();
@@ -294,12 +340,9 @@ async fn encrypt(
     let w = window(&app)?;
     let dir = paths[0].parent().map(Path::to_path_buf);
     run_job(&app, move |app, job| {
-        let mut d = app.dialog().file().set_parent(&w).set_file_name(&name).add_filter("PrivaVault", &[ext.as_str()]);
-        if let Some(dir) = dir {
-            d = d.set_directory(dir);
-        }
-        let Some(out) = d.blocking_save_file() else { return Ok(None) };
-        let out = to_path(out)?;
+        let Some(out) = ask_save_path(app, &w, &name, dir, Some(("PrivaVault", ext.as_str())))? else {
+            return Ok(None);
+        };
         let rep = create_vault(&paths, &out, &password, kdf, job)?;
         *app.state::<AppState>().last_output.lock().unwrap() = Some(rep.output.clone());
         Ok(Some(EncryptResult {
@@ -383,12 +426,7 @@ async fn extract_entry(app: AppHandle, index: usize) -> CmdResult<Option<Extract
             let n = e.path.rsplit(['/', '\\']).next().unwrap_or("file").to_string();
             Ok((safe_file_name(&n, "file"), s.path.parent().map(Path::to_path_buf)))
         })?;
-        let mut d = app.dialog().file().set_parent(&w).set_file_name(&name);
-        if let Some(dir) = dir {
-            d = d.set_directory(dir);
-        }
-        let Some(dest) = d.blocking_save_file() else { return Ok(None) };
-        let dest = to_path(dest)?;
+        let Some(dest) = ask_save_path(app, &w, &name, dir, None)? else { return Ok(None) };
         let out = with_session(app, |s| Ok(s.vault.extract_entry(index, &dest, job)?))?;
         let bytes = std::fs::metadata(&out).map(|m| m.len()).unwrap_or(0);
         *app.state::<AppState>().last_output.lock().unwrap() = Some(out.clone());
@@ -405,12 +443,7 @@ async fn extract_all(app: AppHandle) -> CmdResult<Option<ExtractResult>> {
             let stem = s.path.file_stem().map(|x| x.to_string_lossy().into_owned()).unwrap_or_else(|| "vault".into());
             Ok((safe_file_name(&stem, "vault"), s.path.parent().map(Path::to_path_buf)))
         })?;
-        let mut d = app.dialog().file().set_parent(&w);
-        if let Some(dir) = dir {
-            d = d.set_directory(dir);
-        }
-        let Some(parent) = d.blocking_pick_folder() else { return Ok(None) };
-        let parent = to_path(parent)?;
+        let Some(parent) = ask_folder(app, &w, dir)? else { return Ok(None) };
         let rep = with_session(app, |s| Ok(s.vault.extract_all(&parent, &stem, job)?))?;
         *app.state::<AppState>().last_output.lock().unwrap() = Some(rep.root.clone());
         Ok(Some(ExtractResult {
@@ -432,12 +465,9 @@ async fn export_zip(app: AppHandle) -> CmdResult<Option<ExtractResult>> {
             let stem = s.path.file_stem().map(|x| x.to_string_lossy().into_owned()).unwrap_or_else(|| "vault".into());
             Ok((safe_file_name(&stem, "vault"), s.path.parent().map(Path::to_path_buf)))
         })?;
-        let mut d = app.dialog().file().set_parent(&w).set_file_name(format!("{stem}.zip")).add_filter("ZIP", &["zip"]);
-        if let Some(dir) = dir {
-            d = d.set_directory(dir);
-        }
-        let Some(dest) = d.blocking_save_file() else { return Ok(None) };
-        let dest = to_path(dest)?;
+        let Some(dest) = ask_save_path(app, &w, &format!("{stem}.zip"), dir, Some(("ZIP", "zip")))? else {
+            return Ok(None);
+        };
         let rep = with_session(app, |s| Ok(s.vault.export_zip(&dest, job)?))?;
         *app.state::<AppState>().last_output.lock().unwrap() = Some(rep.root.clone());
         Ok(Some(ExtractResult {

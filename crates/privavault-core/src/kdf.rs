@@ -95,10 +95,7 @@ mod tests {
     fn pbkdf2_matches_rfc7914_vector() {
         // RFC 7914 §11: PBKDF2-HMAC-SHA256("passwd", "salt", c=1, dkLen=64), first 32 bytes.
         let k = pbkdf2_sha256("passwd", b"salt", 1).unwrap();
-        assert_eq!(
-            hex(&k[..]),
-            "55ac046e56e3089fec1691c22544b605f94185216dde0465e68b9d57c20dacbc"
-        );
+        assert_eq!(hex(&k[..]), "55ac046e56e3089fec1691c22544b605f94185216dde0465e68b9d57c20dacbc");
     }
 
     #[test]
@@ -108,10 +105,7 @@ mod tests {
         let params = scrypt::Params::new(10, 8, 16, 32).unwrap();
         let mut out = [0u8; 32];
         scrypt::scrypt(b"password", b"NaCl", &params, &mut out).unwrap();
-        assert_eq!(
-            hex(&out),
-            "fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b373162"
-        );
+        assert_eq!(hex(&out), "fdbabe1c9d3472007856e7190d01e9fe7c6ad7cbc8237830e77376634b373162");
     }
 
     #[test]

@@ -28,7 +28,12 @@ impl AtomicFile {
         let suffix: String = rnd.iter().map(|b| format!("{b:02x}")).collect();
         let tmp = dir.join(format!(".{name}.{suffix}.pvpart"));
         let file = open_private(&tmp).ctx(|| format!("cannot create {}", tmp.display()))?;
-        Ok(Self { tmp, dest: dest.to_path_buf(), writer: Some(BufWriter::with_capacity(256 * 1024, file)), executable: false })
+        Ok(Self {
+            tmp,
+            dest: dest.to_path_buf(),
+            writer: Some(BufWriter::with_capacity(256 * 1024, file)),
+            executable: false,
+        })
     }
 
     pub fn writer(&mut self) -> &mut BufWriter<File> {

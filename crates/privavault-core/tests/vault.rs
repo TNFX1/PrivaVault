@@ -193,8 +193,14 @@ fn v2_roundtrip() {
     assert_eq!(
         names(&v),
         [
-            "Project", "Project/empty-dir", "Project/empty.txt", "Project/readme.txt", "Project/sub",
-            "Project/sub/deeper", "Project/sub/deeper/data.bin", &format!("Project/sub/{ODD_NAME}"),
+            "Project",
+            "Project/empty-dir",
+            "Project/empty.txt",
+            "Project/readme.txt",
+            "Project/sub",
+            "Project/sub/deeper",
+            "Project/sub/deeper/data.bin",
+            &format!("Project/sub/{ODD_NAME}"),
         ]
     );
     let out = d.path().join("out");
@@ -273,10 +279,10 @@ fn v2_tampering_is_detected() {
     let (_, vault) = make_v2(d.path(), "pw");
     let len = fs::metadata(&vault).unwrap().len();
     let cases: &[(u64, &str)] = &[
-        (20, "wrong_password"),  // salt → different key → key check fails
-        (45, "wrong_password"),  // manifest length is covered by the key check
-        (70, "wrong_password"),  // key check itself
-        (100, "corrupted"),      // first chunk (manifest)
+        (20, "wrong_password"), // salt → different key → key check fails
+        (45, "wrong_password"), // manifest length is covered by the key check
+        (70, "wrong_password"), // key check itself
+        (100, "corrupted"),     // first chunk (manifest)
     ];
     for &(off, expected) in cases {
         let p = d.path().join("t.pvault");

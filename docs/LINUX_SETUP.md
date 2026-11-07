@@ -17,7 +17,7 @@ For native KDE file dialogs install the portal (usually already present on Plasm
 
 ### Debian / Ubuntu (22.04+)
 ```bash
-sudo apt install ./PrivaVault_2.0.0_amd64.deb
+sudo apt install ./PrivaVault_2.0.0_amd64.deb      # package name: priva-vault (set by the Tauri bundler)
 ```
 
 ### Fedora / openSUSE

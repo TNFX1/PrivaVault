@@ -59,7 +59,8 @@ fn looks_absolute_windows(p: &Path) -> bool {
     // Allows testing Windows env values on a Unix host ("C:\Users\x\AppData\Roaming").
     let s = p.to_string_lossy();
     let b = s.as_bytes();
-    (b.len() >= 3 && b[0].is_ascii_alphabetic() && b[1] == b':' && (b[2] == b'\\' || b[2] == b'/')) || s.starts_with("\\\\")
+    (b.len() >= 3 && b[0].is_ascii_alphabetic() && b[1] == b':' && (b[2] == b'\\' || b[2] == b'/'))
+        || s.starts_with("\\\\")
 }
 
 #[derive(Debug, Clone, Serialize)]

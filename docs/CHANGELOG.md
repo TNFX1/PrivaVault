@@ -32,5 +32,10 @@ See `docs/PROJECT_AUDIT.md` and `docs/SECURITY_AUDIT.md` for the reasoning.
 - Closing the window quits instead of hiding to the tray.
 - Removed: confetti.
 
+### Quality
+- 40 Rust tests (RFC 7914 KDF vectors, GCM cross-check, real 1.4.0 vaults, tampering, traversal,
+  cancellation, permissions), 8 UI tests, and a 40-check end-to-end test that drives the real window.
+- Throughput ≈ 630 MiB/s encrypt / 660 MiB/s decrypt (release build, NVMe, incl. fsync).
+
 ## 1.4.0
 - English localisation, ZIP extraction support (Electron version).

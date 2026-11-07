@@ -197,11 +197,7 @@ impl V1Vault {
     }
 
     pub fn is_executable(&mut self, index: usize) -> bool {
-        self.zip
-            .by_index_raw(index)
-            .ok()
-            .and_then(|f| f.unix_mode())
-            .is_some_and(|m| m & 0o111 != 0)
+        self.zip.by_index_raw(index).ok().and_then(|f| f.unix_mode()).is_some_and(|m| m & 0o111 != 0)
     }
 
     pub fn copy_entry(&mut self, index: usize, out: &mut dyn Write, job: &Job, base: u64, total: u64) -> Result<u64> {

@@ -5,3 +5,5 @@ out/
 target/
 .tools/
 src-tauri/gen/
+__pycache__/
+*.pyc

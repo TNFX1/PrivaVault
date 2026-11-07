@@ -124,5 +124,5 @@ chunk i   = AES-256-GCM(K_payload, nonce = prefix₇ ‖ BE32(i) ‖ last?, aad 
 6. Windows: ACLs are inherited rather than explicitly restricted.
 7. Windows build, installer and file association were configured but **not executed on Windows in this session**;
    CI (`windows-latest`) is set up to run the tests there.
-8. No GUI end-to-end automation yet (WebKitWebDriver not available on the dev machine); GUI flows were
-   checked manually — see `docs/BUILDING.md#manual-gui-checklist`.
+8. GUI end-to-end tests (`tests/gui/e2e.py`, 40 checks incl. the malicious-vault and XSS cases) run on a
+   Linux desktop only; native dialogs, drag & drop and Windows are covered by the manual checklist.

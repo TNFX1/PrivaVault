@@ -80,9 +80,7 @@ fn exists_no_follow(p: &Path) -> bool {
 
 /// Final component of a path as a display string (portable; handles `\` and `/`).
 pub fn display_name(p: &Path) -> String {
-    p.file_name()
-        .map(|s| s.to_string_lossy().into_owned())
-        .unwrap_or_else(|| p.to_string_lossy().into_owned())
+    p.file_name().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| p.to_string_lossy().into_owned())
 }
 
 #[cfg(test)]
@@ -102,8 +100,18 @@ mod tests {
     #[test]
     fn rejects_traversal_and_absolute() {
         for bad in [
-            "../evil", "a/../../evil", "/etc/passwd", "\\\\server\\share", "a//b", "./a", "", "/",
-            "a/./b", "a\0b", "a\nb", "..\\evil",
+            "../evil",
+            "a/../../evil",
+            "/etc/passwd",
+            "\\\\server\\share",
+            "a//b",
+            "./a",
+            "",
+            "/",
+            "a/./b",
+            "a\0b",
+            "a\nb",
+            "..\\evil",
         ] {
             assert!(sanitize_entry(bad).is_err(), "should reject {bad:?}");
         }
@@ -112,7 +120,19 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn rejects_windows_reserved() {
-        for bad in ["C:x", "C:\\x", "file.txt:stream", "CON", "nul.txt", "com1", "LPT9.log", "trailing.", "trailing ", "a?b", "a*b"] {
+        for bad in [
+            "C:x",
+            "C:\\x",
+            "file.txt:stream",
+            "CON",
+            "nul.txt",
+            "com1",
+            "LPT9.log",
+            "trailing.",
+            "trailing ",
+            "a?b",
+            "a*b",
+        ] {
             assert!(sanitize_entry(bad).is_err(), "should reject {bad:?}");
         }
         assert!(sanitize_entry("CONSOLE.txt").is_ok());

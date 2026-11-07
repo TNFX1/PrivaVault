@@ -120,9 +120,7 @@ impl Header {
             total_len: u64_at(48),
             key_check: h[64..80].try_into().unwrap(),
         };
-        if header.manifest_len == 0
-            || header.manifest_len > MAX_MANIFEST_LEN
-            || header.manifest_len > header.total_len
+        if header.manifest_len == 0 || header.manifest_len > MAX_MANIFEST_LEN || header.manifest_len > header.total_len
         {
             return Err(Error::Corrupted("invalid manifest length"));
         }
@@ -249,11 +247,8 @@ fn add_path(c: &mut Collected, src: &Path, name: &str, meta: &std::fs::Metadata)
         c.skipped.push(src.to_path_buf());
         return Ok(());
     }
-    let mtime = meta
-        .modified()
-        .ok()
-        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-        .map(|d| d.as_secs() as i64);
+    let mtime =
+        meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs() as i64);
     if meta.is_dir() {
         c.entries.push(ManifestEntry { path: name.to_string(), kind: EntryKind::Dir, size: 0, mtime, exec: false });
         c.sources.push(None);
@@ -356,13 +351,7 @@ impl<W: Write> ChunkSink<'_, W> {
     }
 }
 
-pub fn create(
-    inputs: &[PathBuf],
-    output: &Path,
-    password: &str,
-    kdf: ScryptParams,
-    job: &Job,
-) -> Result<CreateReport> {
+pub fn create(inputs: &[PathBuf], output: &Path, password: &str, kdf: ScryptParams, job: &Job) -> Result<CreateReport> {
     if password.is_empty() {
         return Err(Error::InvalidParams("empty password"));
     }

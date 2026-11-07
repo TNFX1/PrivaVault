@@ -44,6 +44,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n-aria]").forEach((el) => el.setAttribute("aria-label", t(el.dataset.i18nAria)));
   renderSelection();
   renderVault();
+  renderEncResult();
+  renderVaultResult();
   renderNet();
   renderAbout();
   updateMeter();
@@ -243,15 +245,34 @@ async function startEncrypt(ev) {
     renderSelection();
     $("encForm").hidden = true;
     $("encResult").hidden = false;
-    $("encResultText").textContent = t("enc.doneText", { files: res.files, size: fmtBytes(res.bytes) });
-    $("encResultPath").textContent = res.output;
-    $("encSkipped").hidden = res.skipped.length === 0;
-    $("encSkipped").textContent = t("enc.skipped", { n: res.skipped.length });
+    state.encResult = res;
+    renderEncResult();
     $("encReveal").focus();
     notifyIfAway("PrivaVault", t("notify.encDone"));
   } catch (e) {
     showMsg(msg, errText(e));
   }
+}
+
+// Results are re-rendered on language change, so keep the data, not the sentence.
+function renderEncResult() {
+  const res = state.encResult;
+  if (!res) return;
+  $("encResultText").textContent = t("enc.doneText", { files: res.files, size: fmtBytes(res.bytes) });
+  $("encResultPath").textContent = res.output;
+  $("encSkipped").hidden = res.skipped.length === 0;
+  $("encSkipped").textContent = t("enc.skipped", { n: res.skipped.length });
+}
+
+function setVaultResult(render) {
+  state.vaultResult = render;
+  renderVaultResult();
+}
+
+function renderVaultResult() {
+  if (!state.vaultResult) return;
+  $("vaultResultText").textContent = state.vaultResult();
+  $("vaultResult").hidden = false;
 }
 
 // ---------------------------------------------------------------- open / vault
@@ -286,6 +307,7 @@ async function unlock(ev) {
     $("vaultFilter").value = "";
     showMsg($("vaultMsg"), "");
     $("vaultResult").hidden = true;
+    state.vaultResult = null;
     renderVault();
   } catch (e) {
     showMsg(msg, errText(e));
@@ -340,12 +362,13 @@ function renderRows() {
 async function vaultOp(cmd, describe) {
   showMsg($("vaultMsg"), "");
   $("vaultResult").hidden = true;
+  $("vaultResultText").textContent = "";
+  state.vaultResult = null;
   state.lastActivity = Date.now();
   try {
     const res = await runOp(() => invoke(cmd));
     if (!res) return;
-    $("vaultResultText").textContent = describe(res);
-    $("vaultResult").hidden = false;
+    setVaultResult(() => describe(res));
     notifyIfAway("PrivaVault", t("notify.decDone"));
   } catch (e) {
     if (e && e.code === "locked") lockUi();
@@ -357,12 +380,13 @@ function extractOne(index) {
   state.lastActivity = Date.now();
   showMsg($("vaultMsg"), "");
   $("vaultResult").hidden = true;
+  $("vaultResultText").textContent = "";
+  state.vaultResult = null;
   runOp(() => invoke("extract_entry", { index }))
     .then((res) => {
       if (!res) return;
       const name = res.output.split(/[\\/]/).pop();
-      $("vaultResultText").textContent = t("vault.savedOne", { name });
-      $("vaultResult").hidden = false;
+      setVaultResult(() => t("vault.savedOne", { name }));
     })
     .catch((e) => showMsg($("vaultMsg"), errText(e)));
 }
@@ -516,7 +540,7 @@ function wire() {
   $("encPw2").addEventListener("input", updateMeter);
   $("encPwForm").addEventListener("submit", startEncrypt);
   $("encReveal").addEventListener("click", () => invoke("reveal_output").catch(() => {}));
-  $("encAgain").addEventListener("click", () => { $("encResult").hidden = true; $("encForm").hidden = false; });
+  $("encAgain").addEventListener("click", () => { state.encResult = null; $("encResult").hidden = true; $("encForm").hidden = false; });
 
   $("btnPickVault").addEventListener("click", async () => { const v = await invoke("pick_vault"); if (v) setPicked(v); });
   $("openPwForm").addEventListener("submit", unlock);
