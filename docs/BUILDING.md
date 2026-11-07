@@ -16,7 +16,7 @@ tools/v1-fixtures        regenerates 1.x test vaults with the original JS code
 
 | | Linux | Windows |
 | --- | --- | --- |
-| Rust | current stable (`pacman -S rust` or rustup) | rustup, MSVC toolchain |
+| Rust | ≥ 1.90 (`pacman -S rust` or rustup) | rustup, MSVC toolchain |
 | System libs | Arch: `webkit2gtk-4.1 gtk3 librsvg` (+ `patchelf` for AppImage) · Debian/Ubuntu: `libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev patchelf` | Visual Studio Build Tools (C++), WebView2 |
 | Tauri CLI | `cargo install tauri-cli --version "^2" --locked` (or `--root .tools` to keep it in the repo) | same |
 

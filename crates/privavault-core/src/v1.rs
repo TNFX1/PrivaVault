@@ -175,10 +175,14 @@ impl V1Vault {
         let mut entries = Vec::with_capacity(zip.len());
         for index in 0..zip.len() {
             let f = zip.by_index_raw(index).map_err(|_| Error::Corrupted("invalid archive entry"))?;
-            let path = f.name().to_string();
+            // A name that isn't valid UTF-8 is shown lossily and never extracted.
+            let (path, bad_name) = match f.name() {
+                Ok(n) => (n.into_owned(), false),
+                Err(_) => (String::from_utf8_lossy(f.name_raw()).into_owned(), true),
+            };
             entries.push(EntryInfo {
                 index,
-                unsafe_path: f.is_symlink() || sanitize_entry(&path).is_err(),
+                unsafe_path: bad_name || f.is_symlink() || sanitize_entry(&path).is_err(),
                 is_dir: f.is_dir(),
                 size: f.size(),
                 modified: None,

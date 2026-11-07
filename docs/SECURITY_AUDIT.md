@@ -110,8 +110,13 @@ chunk i   = AES-256-GCM(K_payload, nonce = prefix₇ ‖ BE32(i) ‖ last?, aad 
 * JavaScript runtime dependencies: **none** (was: archiver, node-stream-zip, Electron, a CDN script).
 * Rust: `cargo tree` for the full list; RustCrypto crates are widely used and partly audited
   (NCC Group audited `aes-gcm`/`aes` in 2020).
-* Recommended in CI: `cargo audit` (RustSec advisories). Not run in this session (tool not installed);
-  see Remaining work.
+* `cargo audit` (RustSec, run 2026-11-07, 487 crates) initially reported 4 advisories in `zip` 4.6
+  (RUSTSEC-2026-0367/0368/0369/0429, all in `ZipArchive::extract`, which PrivaVault never calls — it
+  reads entries itself, validates names and refuses symlinks). Fixed anyway by upgrading to `zip` 9.
+  **Result now: 0 vulnerabilities.** Remaining *warnings* come from Tauri's Linux GTK stack: unmaintained
+  `proc-macro-error`, `zbus_names`, `zvariant`, `zvariant_derive`, and RUSTSEC-2024-0429 (unsound
+  `glib::VariantStrIter`, not used by PrivaVault). They go away when Tauri moves off gtk-rs 0.18.
+* CI runs `cargo audit` on every push.
 
 ## 7. Remaining risks & follow-ups
 
