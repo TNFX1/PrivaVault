@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0 — unreleased
+## 2.0.0 — 2026-11-07
 
 A rework of PrivaVault as a cross-platform (Linux + Windows) app with a new, safer vault format.
 See `docs/PROJECT_AUDIT.md` and `docs/SECURITY_AUDIT.md` for the reasoning.
