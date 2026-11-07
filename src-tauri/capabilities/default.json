@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Main window. Only events and window basics are exposed to JavaScript; dialogs, file access, notifications and URL opening happen in Rust commands.",
+  "windows": ["main"],
+  "permissions": [
+    "core:event:default",
+    "core:window:default",
+    "core:webview:default",
+    "core:app:default"
+  ]
+}

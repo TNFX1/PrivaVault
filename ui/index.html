@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PrivaVault</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/i18n.js" defer></script>
+  <script src="js/util.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <nav class="rail" aria-label="Main">
+      <div class="brand">
+        <img src="img/logo.png" alt="" width="36" height="36">
+        <span>PrivaVault</span>
+      </div>
+      <ul class="nav">
+        <li><button class="nav-item" data-view="encrypt" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3"/><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M12 14.5v2.5"/></svg>
+          <span data-i18n="nav.encrypt"></span></button></li>
+        <li><button class="nav-item" data-view="open">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 9.6-1.9"/><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M12 14.5v2.5"/></svg>
+          <span data-i18n="nav.open"></span></button></li>
+      </ul>
+      <div class="rail-foot">
+        <div class="session" id="sessionPill" hidden>
+          <span class="session-name" id="sessionName"></span>
+          <span class="session-timer" id="sessionTimer"></span>
+          <button class="link" id="railLock" data-i18n="vault.lock"></button>
+        </div>
+        <p class="net" id="netStatus"><span class="dot" aria-hidden="true"></span><span id="netText"></span></p>
+        <button class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+          <span data-i18n="nav.settings"></span></button>
+      </div>
+    </nav>
+
+    <main class="stage">
+      <div class="update-banner" id="updateBanner" hidden role="status">
+        <span id="updateText"></span>
+        <button class="link" id="updateOpen" data-i18n="update.open"></button>
+        <button class="link muted" id="updateDismiss" data-i18n="common.dismiss"></button>
+      </div>
+
+      <!-- Encrypt ---------------------------------------------------------------------- -->
+      <section class="view" id="view-encrypt" aria-labelledby="encTitle">
+        <header class="view-head">
+          <h1 id="encTitle" data-i18n="enc.title"></h1>
+          <p data-i18n="enc.lead"></p>
+        </header>
+
+        <div class="enc-grid" id="encForm">
+          <div class="dropzone" id="encDrop" data-drop="encrypt">
+            <div class="dial" aria-hidden="true">
+              <svg viewBox="0 0 200 200">
+                <circle class="dial-ring" cx="100" cy="100" r="92"/>
+                <circle class="dial-ticks" cx="100" cy="100" r="80"/>
+                <circle class="dial-progress" id="encDialProgress" cx="100" cy="100" r="92" pathLength="100"/>
+                <circle class="dial-core" cx="100" cy="100" r="54"/>
+                <path class="dial-glyph" d="M88 98v-8a12 12 0 0 1 24 0v8M84 98h32v24H84z"/>
+              </svg>
+            </div>
+            <p class="drop-title" data-i18n="enc.dropTitle"></p>
+            <div class="row gap">
+              <button class="btn" id="btnAddFiles" data-i18n="enc.addFiles"></button>
+              <button class="btn" id="btnAddFolder" data-i18n="enc.addFolder"></button>
+            </div>
+          </div>
+
+          <div class="enc-side">
+            <div class="selection" id="selection" hidden>
+              <div class="selection-head">
+                <h2 id="selSummary"></h2>
+                <button class="link muted" id="btnClearSel" data-i18n="enc.clear"></button>
+              </div>
+              <ul class="items" id="selList"></ul>
+            </div>
+
+            <form class="pw-form" id="encPwForm" autocomplete="off">
+              <label for="encPw" data-i18n="enc.password"></label>
+              <div class="pw-field">
+                <input type="password" id="encPw" spellcheck="false" autocomplete="new-password" aria-describedby="pwMeterText">
+                <button type="button" class="reveal" data-target="encPw" data-i18n-aria="common.showPassword"></button>
+              </div>
+              <div class="meter" aria-hidden="true"><span id="pwMeterBar"></span></div>
+              <p class="hint" id="pwMeterText"></p>
+
+              <label for="encPw2" data-i18n="enc.confirm"></label>
+              <div class="pw-field">
+                <input type="password" id="encPw2" spellcheck="false" autocomplete="new-password">
+                <button type="button" class="reveal" data-target="encPw2" data-i18n-aria="common.showPassword"></button>
+              </div>
+              <p class="hint" id="pwMatch"></p>
+
+              <p class="note" data-i18n="enc.noRecovery"></p>
+              <button type="submit" class="btn primary wide" id="btnEncrypt" data-i18n="enc.submit"></button>
+              <p class="msg" id="encMsg" role="alert" hidden></p>
+            </form>
+          </div>
+        </div>
+
+        <div class="result" id="encResult" hidden role="status">
+          <h2 data-i18n="enc.doneTitle"></h2>
+          <p id="encResultText"></p>
+          <p class="path" id="encResultPath"></p>
+          <p class="warn-line" id="encSkipped" hidden></p>
+          <div class="row gap">
+            <button class="btn primary" id="encReveal" data-i18n="common.showInFolder"></button>
+            <button class="btn" id="encAgain" data-i18n="enc.again"></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Open ------------------------------------------------------------------------- -->
+      <section class="view" id="view-open" aria-labelledby="openTitle" hidden>
+        <div id="unlockPane">
+          <header class="view-head">
+            <h1 id="openTitle" data-i18n="open.title"></h1>
+            <p data-i18n="open.lead"></p>
+          </header>
+          <div class="enc-grid">
+            <div class="dropzone" id="openDrop" data-drop="open">
+              <div class="dial" aria-hidden="true">
+                <svg viewBox="0 0 200 200">
+                  <circle class="dial-ring" cx="100" cy="100" r="92"/>
+                  <circle class="dial-ticks" cx="100" cy="100" r="80"/>
+                  <circle class="dial-progress" id="openDialProgress" cx="100" cy="100" r="92" pathLength="100"/>
+                  <circle class="dial-core" cx="100" cy="100" r="54"/>
+                  <path class="dial-glyph" d="M88 98v-8a12 12 0 0 1 23-4M84 98h32v24H84z"/>
+                </svg>
+              </div>
+              <p class="drop-title" id="openDropTitle" data-i18n="open.dropTitle"></p>
+              <button class="btn" id="btnPickVault" data-i18n="open.browse"></button>
+            </div>
+            <div class="enc-side">
+              <div class="picked" id="pickedVault" hidden>
+                <h2 id="pickedName"></h2>
+                <p class="hint" id="pickedMeta"></p>
+              </div>
+              <form class="pw-form" id="openPwForm" autocomplete="off">
+                <label for="openPw" data-i18n="open.password"></label>
+                <div class="pw-field">
+                  <input type="password" id="openPw" spellcheck="false" autocomplete="current-password">
+                  <button type="button" class="reveal" data-target="openPw" data-i18n-aria="common.showPassword"></button>
+                </div>
+                <button type="submit" class="btn primary wide" id="btnUnlock" data-i18n="open.submit"></button>
+                <p class="msg" id="openMsg" role="alert" hidden></p>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div id="vaultPane" hidden>
+          <header class="vault-head">
+            <div>
+              <h1 id="vaultName"></h1>
+              <p class="hint" id="vaultMeta"></p>
+            </div>
+            <div class="row gap">
+              <button class="btn" id="btnExportZip" data-i18n="vault.exportZip"></button>
+              <button class="btn primary" id="btnExtractAll" data-i18n="vault.extractAll"></button>
+              <button class="btn ghost" id="btnLock" data-i18n="vault.lock"></button>
+            </div>
+          </header>
+          <p class="legacy" id="legacyNote" hidden data-i18n="vault.legacy"></p>
+          <p class="warn-line" id="unsafeNote" hidden></p>
+          <div class="toolbar">
+            <input type="search" id="vaultFilter" data-i18n-placeholder="vault.filter" aria-label="Filter">
+            <span class="hint" id="vaultCount"></span>
+          </div>
+          <div class="table-wrap">
+            <table class="entries">
+              <thead><tr>
+                <th scope="col" data-i18n="vault.colName"></th>
+                <th scope="col" class="num" data-i18n="vault.colSize"></th>
+                <th scope="col" data-i18n="vault.colModified"></th>
+                <th scope="col"><span class="sr" data-i18n="vault.colActions"></span></th>
+              </tr></thead>
+              <tbody id="vaultRows"></tbody>
+            </table>
+            <p class="empty" id="vaultEmpty" hidden></p>
+          </div>
+          <p class="msg" id="vaultMsg" role="alert" hidden></p>
+          <div class="result inline" id="vaultResult" hidden role="status">
+            <p id="vaultResultText"></p>
+            <button class="link" id="vaultReveal" data-i18n="common.showInFolder"></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings --------------------------------------------------------------------- -->
+      <section class="view" id="view-settings" aria-labelledby="setTitle" hidden>
+        <header class="view-head">
+          <h1 id="setTitle" data-i18n="set.title"></h1>
+        </header>
+        <form class="settings" id="settingsForm">
+          <fieldset>
+            <legend data-i18n="set.appearance"></legend>
+            <div class="field">
+              <span class="field-label" data-i18n="set.theme"></span>
+              <div class="seg" role="radiogroup">
+                <label><input type="radio" name="theme" value="system"><span data-i18n="set.themeSystem"></span></label>
+                <label><input type="radio" name="theme" value="light"><span data-i18n="set.themeLight"></span></label>
+                <label><input type="radio" name="theme" value="dark"><span data-i18n="set.themeDark"></span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="setLang" data-i18n="set.language"></label>
+              <select id="setLang" name="language">
+                <option value="auto" data-i18n="set.langAuto"></option>
+                <option value="en">English</option>
+                <option value="tr">Türkçe</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend data-i18n="set.newVaults"></legend>
+            <div class="field stack">
+              <span class="field-label" data-i18n="set.strength"></span>
+              <label class="choice"><input type="radio" name="strength" value="standard"><span><b data-i18n="set.stdName"></b><small data-i18n="set.stdDesc"></small></span></label>
+              <label class="choice"><input type="radio" name="strength" value="high"><span><b data-i18n="set.highName"></b><small data-i18n="set.highDesc"></small></span></label>
+              <label class="choice"><input type="radio" name="strength" value="maximum"><span><b data-i18n="set.maxName"></b><small data-i18n="set.maxDesc"></small></span></label>
+            </div>
+            <div class="field">
+              <label class="field-label" for="setExt" data-i18n="set.extension"></label>
+              <select id="setExt" name="default_extension">
+                <option value="pvault">.pvault</option>
+                <option value="vault">.vault</option>
+                <option value="enc">.enc</option>
+                <option value="bin">.bin</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend data-i18n="set.privacy"></legend>
+            <label class="toggle"><input type="checkbox" name="check_updates"><span><b data-i18n="set.updates"></b><small data-i18n="set.updatesDesc"></small></span></label>
+            <label class="toggle"><input type="checkbox" name="notifications"><span><b data-i18n="set.notifications"></b><small data-i18n="set.notificationsDesc"></small></span></label>
+            <div class="field">
+              <label class="field-label" for="setLock" data-i18n="set.autolock"></label>
+              <select id="setLock" name="autolock_minutes">
+                <option value="2">2</option><option value="5">5</option><option value="10">10</option>
+                <option value="30">30</option><option value="0" data-i18n="set.never"></option>
+              </select>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend data-i18n="set.about"></legend>
+            <dl class="about" id="aboutList"></dl>
+            <button type="button" class="link" id="btnReleases" data-i18n="set.releases"></button>
+          </fieldset>
+          <p class="msg ok" id="setMsg" role="status" hidden></p>
+        </form>
+      </section>
+
+      <!-- Progress overlay ------------------------------------------------------------- -->
+      <div class="busy" id="busy" hidden role="dialog" aria-modal="true" aria-labelledby="busyPhase">
+        <div class="busy-card">
+          <div class="dial big" aria-hidden="true">
+            <svg viewBox="0 0 200 200">
+              <circle class="dial-ring" cx="100" cy="100" r="92"/>
+              <circle class="dial-ticks" cx="100" cy="100" r="80"/>
+              <circle class="dial-progress" id="busyRing" cx="100" cy="100" r="92" pathLength="100"/>
+              <circle class="dial-core" cx="100" cy="100" r="54"/>
+            </svg>
+            <span class="dial-pct" id="busyPct"></span>
+          </div>
+          <p class="busy-phase" id="busyPhase"></p>
+          <p class="hint" id="busyDetail"></p>
+          <button class="btn" id="btnCancel" data-i18n="common.cancel"></button>
+        </div>
+      </div>
+
+      <!-- Dialogs ---------------------------------------------------------------------- -->
+      <dialog id="onboarding" aria-labelledby="obTitle">
+        <img src="img/logo.png" alt="" width="64" height="64">
+        <h2 id="obTitle" data-i18n="ob.title"></h2>
+        <ul class="facts">
+          <li><b data-i18n="ob.f1t"></b><span data-i18n="ob.f1"></span></li>
+          <li><b data-i18n="ob.f2t"></b><span data-i18n="ob.f2"></span></li>
+          <li><b data-i18n="ob.f3t"></b><span data-i18n="ob.f3"></span></li>
+        </ul>
+        <button class="btn primary wide" id="obDone" data-i18n="ob.done"></button>
+      </dialog>
+
+      <dialog id="confirmQuit" aria-labelledby="cqTitle">
+        <h2 id="cqTitle" data-i18n="quit.title"></h2>
+        <p data-i18n="quit.body"></p>
+        <div class="row gap end">
+          <button class="btn" id="cqStay" data-i18n="quit.stay"></button>
+          <button class="btn danger" id="cqQuit" data-i18n="quit.quit"></button>
+        </div>
+      </dialog>
+    </main>
+  </div>
+</body>
+</html>

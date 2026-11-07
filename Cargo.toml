@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["crates/privavault-core", "src-tauri"]
+
+[workspace.package]
+version = "2.0.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/TNFX1/PrivaVault"
+rust-version = "1.80"
+
+# Crypto is unbearably slow unoptimised; keep tests realistic.
+[profile.dev.package."*"]
+opt-level = 3
+[profile.test]
+opt-level = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

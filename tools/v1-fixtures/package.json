@@ -1,0 +1,6 @@
+{
+  "name": "privavault-v1-fixtures",
+  "private": true,
+  "description": "Regenerates crates/privavault-core/tests/fixtures/v1_*.pvault with the exact PrivaVault 1.4.0 encryption code path.",
+  "dependencies": { "archiver": "5.3.2" }
+}

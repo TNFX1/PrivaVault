@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.privavault.app</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>PrivaVault</name>
+  <summary>Offline file encryption</summary>
+  <description>
+    <p>PrivaVault encrypts files and folders into password-protected vaults on your own device.
+    It works fully offline: no accounts, no cloud, no telemetry.</p>
+  </description>
+  <launchable type="desktop-id">PrivaVault.desktop</launchable>
+  <url type="homepage">https://github.com/TNFX1/PrivaVault</url>
+  <provides><binary>privavault</binary></provides>
+  <categories><category>Utility</category><category>Security</category></categories>
+  <releases><release version="2.0.0" date="2026-11-07"/></releases>
+</component>

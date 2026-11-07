@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-privavault">
+    <comment>PrivaVault encrypted vault</comment>
+    <comment xml:lang="tr">PrivaVault şifreli kasa</comment>
+    <generic-icon name="package-x-generic"/>
+    <magic priority="80">
+      <match type="string" offset="0" value="PRIVAVLT"/>
+    </magic>
+    <glob pattern="*.pvault"/>
+  </mime-type>
+</mime-info>

@@ -2,3 +2,6 @@ node_modules/
 dist/
 out/
 .env
+target/
+.tools/
+src-tauri/gen/

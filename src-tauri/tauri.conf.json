@@ -1,0 +1,94 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PrivaVault",
+  "mainBinaryName": "privavault",
+  "identifier": "com.privavault.app",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "enableGTKAppId": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "PrivaVault",
+        "width": 1040,
+        "height": 700,
+        "minWidth": 720,
+        "minHeight": 520,
+        "center": true,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self'",
+        "img-src": "'self' data:",
+        "font-src": "'self'",
+        "connect-src": "ipc: http://ipc.localhost https://api.github.com",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "form-action": "'none'",
+        "frame-src": "'none'"
+      },
+      "freezePrototype": true
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["appimage", "deb", "rpm", "nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
+    "category": "Utility",
+    "shortDescription": "Offline file encryption",
+    "longDescription": "PrivaVault encrypts files and folders into password-protected vaults on your own device. No accounts, no cloud, no telemetry.",
+    "copyright": "Copyright (c) TNFX1 and contributors",
+    "license": "MIT",
+    "publisher": "TNFX1",
+    "homepage": "https://github.com/TNFX1/PrivaVault",
+    "fileAssociations": [
+      {
+        "ext": ["pvault"],
+        "name": "PrivaVault vault",
+        "description": "PrivaVault encrypted vault",
+        "mimeType": "application/x-privavault",
+        "role": "Editor"
+      }
+    ],
+    "linux": {
+      "deb": {
+        "desktopTemplate": "../packaging/linux/privavault.desktop.hbs",
+        "files": {
+          "/usr/share/mime/packages/privavault.xml": "../packaging/linux/privavault-mime.xml",
+          "/usr/share/metainfo/com.privavault.app.metainfo.xml": "../packaging/linux/com.privavault.app.metainfo.xml"
+        }
+      },
+      "rpm": {
+        "desktopTemplate": "../packaging/linux/privavault.desktop.hbs",
+        "files": {
+          "/usr/share/mime/packages/privavault.xml": "../packaging/linux/privavault-mime.xml",
+          "/usr/share/metainfo/com.privavault.app.metainfo.xml": "../packaging/linux/com.privavault.app.metainfo.xml"
+        }
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    },
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper" },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English", "Turkish"],
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}
