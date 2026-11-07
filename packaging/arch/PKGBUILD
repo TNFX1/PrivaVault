@@ -13,7 +13,7 @@ depends=('webkit2gtk-4.1' 'gtk3' 'glib2' 'cairo' 'pango' 'gdk-pixbuf2' 'libsoup3
 makedepends=('cargo')
 optdepends=('xdg-desktop-portal-kde: native file dialogs on KDE Plasma'
             'xdg-desktop-portal-gtk: native file dialogs on GNOME and others')
-options=('!lto')
+options=('!lto' '!debug')
 if [[ -n "$PRIVAVAULT_LOCAL_SRC" ]]; then
   source=()
   sha256sums=()
