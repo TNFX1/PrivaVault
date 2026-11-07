@@ -22,7 +22,34 @@ installed already ([download](https://developer.microsoft.com/microsoft-edge/web
 | --- | --- |
 | Settings | `%APPDATA%\PrivaVault\settings.json` |
 | Program (installer) | `%LOCALAPPDATA%\PrivaVault\` |
+| Web engine data | `%LOCALAPPDATA%\com.privavault.app\` — created by WebView2 (engine cache). Holds no vault contents, file names or passwords. |
 | Temp files | none; in-progress outputs are `.<name>.<random>.pvpart` next to the destination |
+
+## Uninstall
+
+Uninstalling removes the program only. **Your vaults (`.pvault` files) and anything you extracted are
+never touched.** Keep the passwords: a vault opens again after reinstalling, but not without its password.
+
+### 1. Remove the program
+
+* **Installer version:** *Settings → Apps → Installed apps*, find **PrivaVault**, choose **⋯ → Uninstall**
+  (Windows 10: *Settings → Apps → Apps & features → PrivaVault → Uninstall*). This removes the program,
+  the Start-menu entry and the `.pvault` file association.
+* **Portable version:** close PrivaVault and delete `PrivaVault-Portable-….exe`.
+
+WebView2 is part of Windows and is shared with other apps; it is not removed and shouldn't be.
+
+### 2. Remove your settings (optional)
+
+Press **Win + R**, paste each line and press Enter, then delete the folder that opens:
+```
+%APPDATA%\PrivaVault
+%LOCALAPPDATA%\com.privavault.app
+```
+Or in PowerShell:
+```powershell
+Remove-Item -Recurse -Force "$env:APPDATA\PrivaVault", "$env:LOCALAPPDATA\com.privavault.app" -ErrorAction SilentlyContinue
+```
 
 ## Upgrading from PrivaVault 1.x (Electron)
 

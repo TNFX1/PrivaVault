@@ -81,6 +81,10 @@ limitations are in [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
 | Any Linux | `.AppImage` from Releases | [Linux](docs/LINUX_SETUP.md) |
 | Windows 10 / 11 | `PrivaVault_x64-setup.exe` (installer) or `PrivaVault-Portable.exe` | [Windows](docs/WINDOWS_SETUP.md) |
 
+To remove PrivaVault, see the *Uninstall* section of the
+[Linux](docs/LINUX_SETUP.md#uninstall) or [Windows](docs/WINDOWS_SETUP.md#uninstall) guide — your vaults
+are never deleted.
+
 On Linux, `.pvault` files open from your file manager, and a second double-click goes to the window
 that's already running. File dialogs are your desktop's own (through the XDG portal).
 

@@ -97,6 +97,10 @@ chunk i   = AES-256-GCM(K_payload, nonce = prefix₇ ‖ BE32(i) ‖ last?, aad 
   the profile by default).
 * Settings (`~/.config/privavault/settings.json` / `%APPDATA%\PrivaVault\settings.json`) hold only UI
   preferences — no paths, no history, no secrets. A corrupt file is moved aside, never trusted.
+* The system WebView keeps a small engine data directory (`~/.local/share/com.privavault.app` on
+  Linux, `%LOCALAPPDATA%\com.privavault.app` on Windows): HTTP cache/storage of the engine itself. The UI
+  is bundled and stores nothing there, so it holds no vault contents, names or passwords. The uninstall
+  guides explain how to remove it.
 * Logging: no log files are written. Error details printed to the developer console contain error kinds and
   file paths only — never passwords, keys or content (the core's `Error` type has no variant that can hold them).
 * Network: none by default. With "Check for updates" on, one `GET https://api.github.com/repos/TNFX1/PrivaVault/releases/latest`

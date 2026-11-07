@@ -43,13 +43,50 @@ The AppImage does not register the `.pvault` file type or a menu entry by itself
 | What | Path |
 | --- | --- |
 | Settings | `$XDG_CONFIG_HOME/privavault/settings.json` (default `~/.config/privavault/`), mode 0600 |
-| Logs, caches, history | none are written |
+| Web engine data | `~/.local/share/com.privavault.app/` — a few KB created by WebKitGTK itself (engine cache/storage). Holds no vault contents, file names or passwords. |
+| Logs, history, recent files | none are written |
 | Temp files | none; in-progress outputs are hidden `.<name>.<random>.pvpart` files next to the destination, removed on failure |
 | Binary (packages) | `/usr/bin/privavault` |
 | Desktop entry | `/usr/share/applications/com.privavault.app.desktop` (named after the Wayland app_id) |
 | MIME type | `/usr/share/mime/packages/privavault.xml` (`application/x-privavault`; detected by the `PRIVAVLT` magic or `*.pvault`) |
 
 To reset settings: `rm ~/.config/privavault/settings.json`.
+
+## Uninstall
+
+Uninstalling removes the program only. **Your vaults (`.pvault` files) and anything you extracted are
+never touched** — they are ordinary files in your folders. Keep the passwords: a vault can be opened
+again after reinstalling, on any computer, but not without its password.
+
+### 1. Remove the program
+
+| Installed with | Remove with |
+| --- | --- |
+| Arch / CachyOS package (`pacman -U` or `makepkg -si`) | `sudo pacman -R privavault` |
+| Debian / Ubuntu `.deb` | `sudo apt remove priva-vault` |
+| Fedora / openSUSE `.rpm` | `sudo dnf remove priva-vault` (openSUSE: `sudo zypper remove priva-vault`) |
+| AppImage | delete the `.AppImage` file; if you added it to your menu with a tool such as AppImageLauncher or Gear Lever, remove it there |
+
+The package manager also removes the menu entry, icons and the `.pvault` file type. Libraries that were
+installed as dependencies (WebKitGTK…) stay, because other apps may use them; on Arch you can remove
+unused ones with `sudo pacman -Rns privavault` instead.
+
+### 2. Remove your settings (optional)
+
+These stay in your home folder so a reinstall keeps your preferences. To remove them too:
+```bash
+rm -rf ~/.config/privavault ~/.local/share/com.privavault.app
+```
+
+### 3. Check nothing is left (optional)
+
+```bash
+command -v privavault                       # prints nothing when the program is gone
+ls ~/.config/privavault ~/.local/share/com.privavault.app 2>/dev/null   # prints nothing when settings are gone
+```
+
+If KDE still shows an old menu entry for a moment, it disappears after the next login (or run
+`kbuildsycoca6`).
 
 ## Desktop integration
 

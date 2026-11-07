@@ -7,6 +7,8 @@
   desktop. The preference is now read from the XDG Desktop Portal and follows live changes.
 - Fixed: KDE showed a generic Wayland logo instead of the PrivaVault icon in the title bar and task
   manager. The desktop entry is now named after the Wayland app id (`com.privavault.app.desktop`).
+- Docs: uninstall guides for Linux and Windows (program, settings and leftover check); the data-location
+  tables now list the WebView engine's own data folder.
 - New: a ready-made Arch Linux / CachyOS package (`.pkg.tar.zst`) is attached to every release —
   install with `sudo pacman -U`, no compiling.
 
