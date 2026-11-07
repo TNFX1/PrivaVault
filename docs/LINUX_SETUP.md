@@ -7,9 +7,11 @@ Fedora/openSUSE (.rpm) and any distro via AppImage.
 
 ### Arch Linux / CachyOS (recommended: native package)
 Download `privavault-<version>-1-x86_64.pkg.tar.zst` from
-[Releases](https://github.com/TNFX1/PrivaVault/releases) and install it:
+[Releases](https://github.com/TNFX1/PrivaVault/releases). Open a terminal **in the folder you downloaded
+it to** (its name depends on your language: *Downloads*, *İndirilenler*, …; in Dolphin: right-click →
+*Open Terminal Here*) and run:
 ```bash
-sudo pacman -U ~/Downloads/privavault-*-x86_64.pkg.tar.zst
+sudo pacman -U ./privavault-*-x86_64.pkg.tar.zst
 ```
 pacman installs the needed libraries (`webkit2gtk-4.1`, `gtk3`, …) from the official repos.
 Uninstall with `sudo pacman -R privavault`. Updates: install the newer file the same way.

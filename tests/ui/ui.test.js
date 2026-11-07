@@ -56,6 +56,12 @@ test("no innerHTML/outerHTML/insertAdjacentHTML/eval anywhere in the UI (XSS reg
   }
 });
 
+test("UI never sets a style attribute (CSP blocks it); CSSOM only", () => {
+  const js = read("js/app.js");
+  assert.doesNotMatch(js, /setAttribute\(\s*["']style["']/);
+  assert.doesNotMatch(js, /\bstyle:\s*[`"']/, "h() style attribute");
+});
+
 test("HTML has no inline scripts, inline handlers or remote resources (CSP)", () => {
   const html = read("index.html");
   assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/, "inline <script>");

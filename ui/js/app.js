@@ -46,6 +46,8 @@ function applyI18n() {
   renderVault();
   renderEncResult();
   renderVaultResult();
+  renderActivity();
+  renderRailInfo();
   renderNet();
   renderAbout();
   updateMeter();
@@ -78,6 +80,8 @@ function h(tag, attrs = {}, ...children) {
   for (const [k, v] of Object.entries(attrs)) {
     if (k === "class") el.className = v;
     else if (k === "text") el.textContent = v;
+    // CSS custom properties via CSSOM: allowed by the CSP (a style="" attribute would be blocked).
+    else if (k === "vars") for (const [name, val] of Object.entries(v)) el.style.setProperty(name, String(val));
     else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
     else el.setAttribute(k, v);
   }
@@ -130,12 +134,32 @@ function applyTheme() {
 darkQuery.addEventListener("change", applyTheme);
 
 function showView(view) {
+  const changed = state.view !== view;
   state.view = view;
-  for (const v of ["encrypt", "open", "settings"]) $(`view-${v}`).hidden = v !== view;
+  for (const v of ["encrypt", "open", "settings"]) {
+    const el = $(`view-${v}`);
+    el.hidden = v !== view;
+    if (v === view && changed) {
+      el.classList.remove("entering");
+      void el.offsetWidth; // restart the animation
+      el.classList.add("entering");
+    }
+  }
   document.querySelectorAll(".nav-item").forEach((b) => {
     if (b.dataset.view === view) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
   });
+  moveIndicator();
+}
+
+/** Slide the accent bar to the active item of the main navigation. */
+function moveIndicator() {
+  const bar = $("navIndicator");
+  const active = document.querySelector(".nav .nav-item[aria-current]");
+  if (!active) { bar.style.opacity = "0"; return; }
+  bar.style.opacity = "1";
+  bar.style.height = `${active.offsetHeight - 12}px`;
+  bar.style.transform = `translateY(${active.offsetTop + 6}px)`;
 }
 
 function renderNet() {
@@ -200,8 +224,12 @@ function updateMeter() {
 
 // ---------------------------------------------------------------- encrypt
 function addToSelection(items) {
+  state.justAdded = new Set();
   for (const it of items) {
-    if (!state.selection.some((s) => s.path === it.path)) state.selection.push(it);
+    if (!state.selection.some((s) => s.path === it.path)) {
+      state.selection.push(it);
+      state.justAdded.add(it.path);
+    }
   }
   $("encResult").hidden = true;
   $("encForm").hidden = false;
@@ -216,13 +244,15 @@ function renderSelection() {
   const total = sel.reduce((a, s) => a + s.size, 0);
   $("selSummary").textContent = sel.length === 1 ? t("enc.selOne", { size: fmtBytes(total) }) : t("enc.selFiles", { n: sel.length, size: fmtBytes(total) });
   const list = $("selList");
-  list.replaceChildren(...sel.map((s, i) => h("li", {},
+  let fresh = 0;
+  list.replaceChildren(...sel.map((s, i) => h("li", state.justAdded?.has(s.path) ? { class: "new", vars: { "--i": fresh++ } } : {},
     icon(s.is_dir ? "dir" : "file"),
     h("span", { class: "name", title: s.path, text: s.name }),
     h("span", { class: "size", text: s.is_dir ? `${t("enc.folderInfo", { n: s.files })} · ${fmtBytes(s.size)}` : fmtBytes(s.size) }),
     h("button", { class: "remove", type: "button", "aria-label": t("enc.remove", { name: s.name }), text: "×",
       onclick: () => { state.selection.splice(i, 1); renderSelection(); } }),
   )));
+  state.justAdded = null;
 }
 
 function suggestedName() {
@@ -236,8 +266,8 @@ async function startEncrypt(ev) {
   const pw = $("encPw").value, pw2 = $("encPw2").value;
   if (!state.selection.length) return showMsg(msg, t("err.empty_input"));
   if (!pw) return showMsg(msg, t("err.no_password"));
-  if (pw.length < 8) return showMsg(msg, t("err.weak"));
-  if (pw !== pw2) return showMsg(msg, t("err.mismatch"));
+  if (pw.length < 8) { shake($("encPwForm")); return showMsg(msg, t("err.weak")); }
+  if (pw !== pw2) { shake($("encPwForm")); return showMsg(msg, t("err.mismatch")); }
   showMsg(msg, "");
   try {
     const res = await runOp(() => invoke("encrypt", { paths: state.selection.map((s) => s.path), password: pw, suggestedName: suggestedName() }));
@@ -251,6 +281,7 @@ async function startEncrypt(ev) {
     state.encResult = res;
     renderEncResult();
     $("encReveal").focus();
+    logActivity("locked", "act.locked", { name: res.output.split(/[\\/]/).pop() });
     notifyIfAway("PrivaVault", t("notify.encDone"));
   } catch (e) {
     showMsg(msg, errText(e));
@@ -276,6 +307,62 @@ function renderVaultResult() {
   if (!state.vaultResult) return;
   $("vaultResultText").textContent = state.vaultResult();
   $("vaultResult").hidden = false;
+}
+
+// ---------------------------------------------------------------- session activity (memory only)
+const ACT_ICONS = {
+  locked: "M7 10V7a5 5 0 0 1 10 0v3M4.5 10h15v11h-15z",
+  unlocked: "M7 10V7a5 5 0 0 1 9.6-1.9M4.5 10h15v11h-15z",
+  extracted: "M12 4v11m0 0l-4-4m4 4l4-4M5 20h14",
+  closed: "M7 10V7a5 5 0 0 1 10 0v3M4.5 10h15v11h-15z",
+};
+
+/** Remember what happened in this session. Never written to disk; gone when the app quits. */
+function logActivity(kind, key, vars) {
+  state.activity = [{ kind, key, vars, at: Date.now() }, ...(state.activity || [])].slice(0, 6);
+  state.activityFresh = true;
+  renderActivity();
+}
+
+function renderActivity() {
+  const list = state.activity || [];
+  $("activityEmpty").hidden = list.length > 0;
+  const rtf = new Intl.RelativeTimeFormat(state.lang, { numeric: "auto" });
+  const ago = (ms) => {
+    const s = Math.round((ms - Date.now()) / 1000);
+    if (s > -45) return t("act.now");
+    if (s > -3600) return rtf.format(Math.round(s / 60), "minute");
+    return rtf.format(Math.round(s / 3600), "hour");
+  };
+  const ns = "http://www.w3.org/2000/svg";
+  $("activityList").replaceChildren(...list.map((a, i) => {
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    const p = document.createElementNS(ns, "path");
+    p.setAttribute("d", ACT_ICONS[a.kind] || ACT_ICONS.locked);
+    svg.append(p);
+    const what = t(a.key, a.vars);
+    const li = h("li", { title: what }, svg, h("span", { class: "what", text: what }), h("span", { class: "when", text: ago(a.at) }));
+    if (!(i === 0 && state.activityFresh)) li.style.animation = "none";
+    return li;
+  }));
+  state.activityFresh = false;
+}
+
+function renderRailInfo() {
+  const s = state.settings;
+  if (!s) return;
+  const mib = { standard: 128, high: 256, maximum: 512 }[s.strength] || 128;
+  $("railKdf").textContent = t("rail.kdf", { mib });
+  $("railAutolock").textContent = s.autolock_minutes ? t("rail.autolock", { n: s.autolock_minutes }) : t("rail.autolockOff");
+  if (state.info) $("railVersion").textContent = `PrivaVault ${state.info.version}`;
+}
+
+function shake(form) {
+  form.classList.remove("shake");
+  void form.offsetWidth;
+  form.classList.add("shake");
 }
 
 // ---------------------------------------------------------------- open / vault
@@ -307,6 +394,9 @@ async function unlock(ev) {
     $("openPw").value = "";
     state.vault = res;
     state.lastActivity = Date.now();
+    logActivity("unlocked", "act.unlocked", { name: res.name });
+    $("vaultRows").closest("table").classList.add("animate");
+    setTimeout(() => $("vaultRows").closest("table").classList.remove("animate"), 1200);
     $("vaultFilter").value = "";
     showMsg($("vaultMsg"), "");
     $("vaultResult").hidden = true;
@@ -314,6 +404,7 @@ async function unlock(ev) {
     renderVault();
   } catch (e) {
     showMsg(msg, errText(e));
+    if (e && e.code === "wrong_password") shake($("openPwForm"));
     $("openPw").select();
   }
 }
@@ -343,7 +434,7 @@ function renderRows() {
   $("vaultCount").textContent = t("vault.count", { n: rows.length, total: v.entries.length });
   $("vaultEmpty").hidden = rows.length > 0;
   $("vaultEmpty").textContent = v.entries.length === 0 ? t("vault.empty") : t("vault.noMatch", { q });
-  $("vaultRows").replaceChildren(...rows.slice(0, 5000).map((e) => {
+  $("vaultRows").replaceChildren(...rows.slice(0, 5000).map((e, i) => {
     const trimmed = e.path.replace(/[\\/]+$/, "");
     const cut = Math.max(trimmed.lastIndexOf("/"), trimmed.lastIndexOf("\\"));
     const dir = cut >= 0 ? trimmed.slice(0, cut + 1) : "";
@@ -354,7 +445,7 @@ function renderRows() {
     const action = e.is_dir || e.unsafe_path ? "" :
       h("button", { class: "btn", type: "button", text: t("vault.save"), "aria-label": `${t("vault.save")} ${base}`,
         onclick: () => extractOne(e.index) });
-    return h("tr", { class: e.unsafe_path ? "unsafe" : "" },
+    return h("tr", { class: e.unsafe_path ? "unsafe" : "", vars: { "--i": Math.min(i, 30) } },
       h("td", {}, name),
       h("td", { class: "num", text: e.is_dir ? "" : fmtBytes(e.size) }),
       h("td", { class: "when", text: fmtDate(e.modified) }),
@@ -372,6 +463,7 @@ async function vaultOp(cmd, describe) {
     const res = await runOp(() => invoke(cmd));
     if (!res) return;
     setVaultResult(() => describe(res));
+    logActivity("extracted", cmd === "export_zip" ? "act.zip" : "act.extracted", { n: res.files });
     notifyIfAway("PrivaVault", t("notify.decDone"));
   } catch (e) {
     if (e && e.code === "locked") lockUi();
@@ -390,6 +482,7 @@ function extractOne(index) {
       if (!res) return;
       const name = res.output.split(/[\\/]/).pop();
       setVaultResult(() => t("vault.savedOne", { name }));
+      logActivity("extracted", "act.saved", { name });
     })
     .catch((e) => showMsg($("vaultMsg"), errText(e)));
 }
@@ -400,8 +493,10 @@ function lockUi() {
 }
 
 async function lockVault() {
+  const name = state.vault?.name;
   await invoke("lock_vault").catch(() => {});
   lockUi();
+  if (name) logActivity("closed", "act.closed", { name });
 }
 
 // ---------------------------------------------------------------- auto-lock
@@ -422,6 +517,7 @@ setInterval(() => {
   if (state.vault && mins && !state.busy && Date.now() - state.lastActivity > mins * 60000) lockVault();
   renderTimer();
 }, 5000);
+setInterval(renderActivity, 30000);
 
 // ---------------------------------------------------------------- settings
 function fillSettings() {
@@ -502,7 +598,9 @@ async function handlePaths(infos) {
     showView("open");
     setPicked(vaults[0]);
   } else {
-    showView("encrypt");
+    state.view = "encrypt";
+  showView("encrypt");
+  document.fonts?.ready.then(moveIndicator);
     addToSelection(infos);
   }
 }
@@ -568,8 +666,20 @@ function wire() {
   $("cqStay").addEventListener("click", () => $("confirmQuit").close());
   $("cqQuit").addEventListener("click", () => invoke("quit_app"));
 
+  $("railChange").addEventListener("click", () => showView("settings"));
+  window.addEventListener("resize", moveIndicator);
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && state.busy) invoke("cancel");
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || state.busy || document.querySelector("dialog[open]")) return;
+    const k = e.key.toLowerCase();
+    if (k === "n") { e.preventDefault(); showView("encrypt"); }
+    else if (k === "o") {
+      e.preventDefault();
+      showView("open");
+      if (!state.vault) $("btnPickVault").click();
+    } else if (k === "l" && state.vault) { e.preventDefault(); lockVault(); }
+    else if (k === ",") { e.preventDefault(); showView("settings"); }
   });
 }
 
