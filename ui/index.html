@@ -63,7 +63,8 @@
     <main class="stage">
       <div class="update-banner" id="updateBanner" hidden role="status">
         <span id="updateText"></span>
-        <button class="link" id="updateOpen" data-i18n="update.open"></button>
+        <button class="btn primary small" id="updateInstall" data-i18n="update.now"></button>
+        <button class="link" id="updateOpen" data-i18n="update.notes"></button>
         <button class="link muted" id="updateDismiss" data-i18n="common.dismiss"></button>
       </div>
 
@@ -264,6 +265,10 @@
           <fieldset>
             <legend data-i18n="set.privacy"></legend>
             <label class="toggle"><input type="checkbox" name="check_updates"><span><b data-i18n="set.updates"></b><small data-i18n="set.updatesDesc"></small></span></label>
+            <div class="row gap check-now">
+              <button type="button" class="btn" id="btnCheckNow" data-i18n="set.checkNow"></button>
+              <span class="hint" id="checkResult" role="status"></span>
+            </div>
             <label class="toggle"><input type="checkbox" name="notifications"><span><b data-i18n="set.notifications"></b><small data-i18n="set.notificationsDesc"></small></span></label>
             <div class="field">
               <label class="field-label" for="setLock" data-i18n="set.autolock"></label>

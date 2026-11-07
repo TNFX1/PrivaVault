@@ -28,7 +28,7 @@
         "style-src": "'self'",
         "img-src": "'self' data:",
         "font-src": "'self'",
-        "connect-src": "ipc: http://ipc.localhost https://api.github.com",
+        "connect-src": "ipc: http://ipc.localhost",
         "object-src": "'none'",
         "base-uri": "'none'",
         "form-action": "'none'",
@@ -102,6 +102,18 @@
           "Turkish"
         ],
         "displayLanguageSelector": false
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM2REI5RUI5NTY1NzIwMEIKUldRTElGZFd1WjdiTnJ3YnFHQjN6UUdwd1VwVEFRY1ZQUjVEYmc3OFJ0Kyt0cmlUak1hcGVNRFIK",
+      "endpoints": [
+        "https://github.com/TNFX1/PrivaVault/releases/latest/download/latest.json"
+      ],
+      "requireSignedVersion": true,
+      "windows": {
+        "installMode": "passive"
       }
     }
   }

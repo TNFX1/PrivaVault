@@ -375,3 +375,6 @@ body, .rail, .dropzone, .selection, .table-wrap, input, select { transition-prop
 @media (max-width: 900px) {
   .rail-card, .version { display: none; }
 }
+
+.btn.small { min-height: 30px; padding: 4px 12px; font-size: 13px; }
+.check-now .hint { min-height: 0; }

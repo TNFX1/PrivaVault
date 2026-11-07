@@ -551,7 +551,7 @@ async function saveSettingsFromForm() {
     applyI18n();
     showMsg($("setMsg"), t("set.saved"), true);
     setTimeout(() => ($("setMsg").hidden = true), 1500);
-    if (turnedOnUpdates) checkUpdates();
+    if (turnedOnUpdates) checkUpdates(true);
   } catch (e) {
     showMsg($("setMsg"), errText(e));
   }
@@ -572,21 +572,33 @@ function renderAbout() {
 }
 
 // ---------------------------------------------------------------- update check (opt-in)
-async function checkUpdates() {
-  if (!state.settings?.check_updates) return;
+/** Ask the backend (Rust) for an update. `manual` = the user pressed "Check now" (consent). */
+async function checkUpdates(manual = false) {
+  if (!manual && !state.settings?.check_updates) return null;
   try {
-    const r = await fetch("https://api.github.com/repos/TNFX1/PrivaVault/releases/latest", {
-      headers: { Accept: "application/vnd.github+json" }, credentials: "omit", referrerPolicy: "no-referrer",
-    });
-    if (!r.ok) return;
-    const j = await r.json();
-    const latest = String(j.tag_name || "").replace(/^v/, "");
-    if (/^\d+(\.\d+)*$/.test(latest) && newer(state.info.version, latest)) {
-      state.updateUrl = typeof j.html_url === "string" ? j.html_url : null;
-      $("updateText").textContent = t("update.text", { v: latest });
+    const u = await invoke("check_update", { manual });
+    state.update = u;
+    if (u) {
+      $("updateText").textContent = t("update.text", { v: u.version });
+      $("updateInstall").hidden = !u.can_install;
       $("updateBanner").hidden = false;
     }
-  } catch { /* offline: stay quiet */ }
+    return { ok: true, update: u };
+  } catch (e) {
+    return { ok: false, error: e };
+  }
+}
+
+async function installUpdate() {
+  $("btnCancel").hidden = true; // an install can't be interrupted halfway
+  try {
+    await runOp(() => invoke("install_update"));
+    // On success the app restarts (Windows: the installer takes over).
+  } catch (e) {
+    $("updateText").textContent = errText(e);
+  } finally {
+    $("btnCancel").hidden = false;
+  }
 }
 
 // ---------------------------------------------------------------- incoming paths
@@ -656,7 +668,18 @@ function wire() {
   $("settingsForm").addEventListener("change", saveSettingsFromForm);
   $("settingsForm").addEventListener("submit", (e) => e.preventDefault());
   $("btnReleases").addEventListener("click", () => invoke("open_releases", { url: null }));
-  $("updateOpen").addEventListener("click", () => invoke("open_releases", { url: state.updateUrl }));
+  $("updateOpen").addEventListener("click", () =>
+    invoke("open_releases", { url: state.update ? `${state.info.releases_url}/tag/v${state.update.version}` : null }));
+  $("updateInstall").addEventListener("click", installUpdate);
+  $("btnCheckNow").addEventListener("click", async () => {
+    $("btnCheckNow").disabled = true;
+    $("checkResult").textContent = t("set.checking");
+    const r = await checkUpdates(true);
+    $("btnCheckNow").disabled = false;
+    $("checkResult").textContent = !r.ok ? errText(r.error)
+      : r.update ? t("update.text", { v: r.update.version })
+      : t("set.upToDate", { v: state.info.version });
+  });
   $("updateDismiss").addEventListener("click", () => ($("updateBanner").hidden = true));
 
   $("obDone").addEventListener("click", async () => {
@@ -693,6 +716,9 @@ async function init() {
   showView("encrypt");
 
   await listen("progress", (e) => { if (state.busy) setProgress(e.payload); });
+  await listen("update-progress", (e) => {
+    if (state.busy) setProgress({ ...e.payload, phase: `update_${e.payload.phase}` });
+  });
   await listen("open-paths", async (e) => handlePaths(await invoke("inspect_paths", { paths: e.payload })));
   await listen("close-requested", () => $("confirmQuit").showModal());
   await listen("system-theme", (e) => { state.systemDark = e.payload; applyTheme(); });

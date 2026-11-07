@@ -37,7 +37,8 @@ build() {
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR="$srcdir/target"
   # custom-protocol = production build that serves the bundled UI (what `cargo tauri build` does).
-  cargo build --frozen --release -p privavault --features tauri/custom-protocol
+  # Tells the in-app updater it was installed by pacman (see src-tauri/src/update.rs).
+  PRIVAVAULT_PACKAGE=pacman cargo build --frozen --release -p privavault --features tauri/custom-protocol
 }
 
 check() {

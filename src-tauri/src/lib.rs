@@ -11,6 +11,7 @@
 
 mod platform;
 mod settings;
+mod update;
 
 use privavault_core::{create_vault, detect_format, EntryInfo, Format, Job, Progress, Vault};
 use serde::Serialize;
@@ -44,6 +45,8 @@ struct AppState {
     last_output: Mutex<Option<PathBuf>>,
     /// Desktop light/dark preference (Linux: XDG portal; `None` = unknown / no preference).
     system_dark: Mutex<Option<bool>>,
+    /// Update found by the last check, ready for `install_update`.
+    pending_update: Mutex<Option<tauri_plugin_updater::Update>>,
 }
 
 /// Error shape sent to the UI: a stable code for localisation plus a technical detail line.
@@ -527,6 +530,52 @@ fn open_releases(app: AppHandle, url: Option<String>) -> CmdResult<()> {
     app.opener().open_url(url, None::<&str>).map_err(|e| err("io", e.to_string()))
 }
 
+// ---------------------------------------------------------------------------------------------
+// Updates (see update.rs). Network access only with consent: the setting, or "Check now".
+// ---------------------------------------------------------------------------------------------
+
+#[tauri::command]
+async fn check_update(app: AppHandle, manual: bool) -> CmdResult<Option<update::Available>> {
+    let allowed = manual || app.state::<AppState>().settings.lock().unwrap().check_updates;
+    if !allowed {
+        return Ok(None);
+    }
+    match update::check(&app).await {
+        Ok(Some((info, pending))) => {
+            *app.state::<AppState>().pending_update.lock().unwrap() = pending;
+            Ok(Some(info))
+        }
+        Ok(None) => Ok(None),
+        Err(e) => Err(err("update_check_failed", e)),
+    }
+}
+
+#[tauri::command]
+async fn install_update(app: AppHandle) -> CmdResult<()> {
+    let _guard = BusyGuard::acquire(&app)?;
+    let st = app.state::<AppState>();
+    let pending = st.pending_update.lock().unwrap().take().ok_or_else(|| err("update_unavailable", "check first"))?;
+    // Never leave a key in memory while the program is being replaced.
+    st.session.lock().unwrap().take();
+    let emitter = app.clone();
+    let last = Mutex::new(Instant::now() - Duration::from_secs(1));
+    let progress = move |p: update::Progress| {
+        let mut l = last.lock().unwrap();
+        if l.elapsed() >= Duration::from_millis(100) || p.done == p.total {
+            *l = Instant::now();
+            let _ = emitter.emit("update-progress", p);
+        }
+    };
+    update::install(pending, update::method(), progress).await.map_err(|e| {
+        if e == "cancelled" {
+            err("update_cancelled", e)
+        } else {
+            err("update_failed", e)
+        }
+    })?;
+    app.restart()
+}
+
 #[tauri::command]
 fn notify(app: AppHandle, state: State<'_, AppState>, title: String, body: String) {
     if state.settings.lock().unwrap().notifications {
@@ -563,6 +612,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState {
             config_dir,
             settings: Mutex::new(settings.clone()),
@@ -573,6 +623,7 @@ pub fn run() {
             launch_paths: Mutex::new(launch),
             last_output: Mutex::new(None),
             system_dark: Mutex::new(system_dark),
+            pending_update: Mutex::new(None),
         })
         .setup(move |app| {
             apply_theme(app.handle(), settings.theme);
@@ -620,6 +671,8 @@ pub fn run() {
             reveal_output,
             open_releases,
             notify,
+            check_update,
+            install_update,
         ])
         .run(tauri::generate_context!())
         .expect("error while running PrivaVault");
