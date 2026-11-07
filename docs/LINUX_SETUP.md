@@ -6,12 +6,19 @@ Fedora/openSUSE (.rpm) and any distro via AppImage.
 ## Install
 
 ### Arch Linux / CachyOS (recommended: native package)
+Download `privavault-<version>-1-x86_64.pkg.tar.zst` from
+[Releases](https://github.com/TNFX1/PrivaVault/releases) and install it:
+```bash
+sudo pacman -U ~/Downloads/privavault-*-x86_64.pkg.tar.zst
+```
+pacman installs the needed libraries (`webkit2gtk-4.1`, `gtk3`, …) from the official repos.
+Uninstall with `sudo pacman -R privavault`. Updates: install the newer file the same way.
+
+To build the package yourself instead (needs `cargo`, takes a few minutes):
 ```bash
 git clone https://github.com/TNFX1/PrivaVault.git
-cd PrivaVault/packaging/arch
-PRIVAVAULT_LOCAL_SRC=../.. makepkg -si      # builds from this checkout and installs
+cd PrivaVault/packaging/arch && PRIVAVAULT_LOCAL_SRC=../.. makepkg -si
 ```
-`makepkg` pulls `webkit2gtk-4.1`, `gtk3` etc. from the official repos and needs `cargo` to build.
 For native KDE file dialogs install the portal (usually already present on Plasma):
 `sudo pacman -S --needed xdg-desktop-portal-kde`.
 
@@ -39,7 +46,7 @@ The AppImage does not register the `.pvault` file type or a menu entry by itself
 | Logs, caches, history | none are written |
 | Temp files | none; in-progress outputs are hidden `.<name>.<random>.pvpart` files next to the destination, removed on failure |
 | Binary (packages) | `/usr/bin/privavault` |
-| Desktop entry | `/usr/share/applications/PrivaVault.desktop` |
+| Desktop entry | `/usr/share/applications/com.privavault.app.desktop` (named after the Wayland app_id) |
 | MIME type | `/usr/share/mime/packages/privavault.xml` (`application/x-privavault`; detected by the `PRIVAVLT` magic or `*.pvault`) |
 
 To reset settings: `rm ~/.config/privavault/settings.json`.

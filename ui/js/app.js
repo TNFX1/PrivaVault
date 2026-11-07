@@ -121,7 +121,10 @@ function errText(e) {
 const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
 function applyTheme() {
   const pref = state.settings?.theme || "system";
-  const dark = pref === "dark" || (pref === "system" && darkQuery.matches);
+  // On Linux the desktop preference comes from the XDG portal via Rust (systemDark);
+  // elsewhere, or when unknown, the WebView's media query is right.
+  const systemDark = typeof state.systemDark === "boolean" ? state.systemDark : darkQuery.matches;
+  const dark = pref === "dark" || (pref === "system" && systemDark);
   document.documentElement.dataset.theme = dark ? "dark" : "light";
 }
 darkQuery.addEventListener("change", applyTheme);
@@ -573,6 +576,7 @@ function wire() {
 async function init() {
   wire();
   [state.settings, state.info] = await Promise.all([invoke("get_settings"), invoke("app_info")]);
+  state.systemDark = state.info.system_dark;
   applyTheme();
   applyI18n();
   fillSettings();
@@ -581,6 +585,7 @@ async function init() {
   await listen("progress", (e) => { if (state.busy) setProgress(e.payload); });
   await listen("open-paths", async (e) => handlePaths(await invoke("inspect_paths", { paths: e.payload })));
   await listen("close-requested", () => $("confirmQuit").showModal());
+  await listen("system-theme", (e) => { state.systemDark = e.payload; applyTheme(); });
   await setupDragDrop();
 
   handlePaths(await invoke("take_launch_paths"));

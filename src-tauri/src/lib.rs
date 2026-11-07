@@ -42,6 +42,8 @@ struct AppState {
     quit_requested: AtomicBool,
     launch_paths: Mutex<Vec<PathBuf>>,
     last_output: Mutex<Option<PathBuf>>,
+    /// Desktop light/dark preference (Linux: XDG portal; `None` = unknown / no preference).
+    system_dark: Mutex<Option<bool>>,
 }
 
 /// Error shape sent to the UI: a stable code for localisation plus a technical detail line.
@@ -189,6 +191,8 @@ struct AppInfo {
     environment: platform::Environment,
     config_dir: Option<PathBuf>,
     releases_url: &'static str,
+    /// Desktop prefers dark (Linux portal). `None`: let the WebView's media query decide.
+    system_dark: Option<bool>,
 }
 
 #[tauri::command]
@@ -198,6 +202,7 @@ fn app_info(state: State<'_, AppState>) -> AppInfo {
         environment: platform::environment(|k| std::env::var(k).ok()),
         config_dir: state.config_dir.clone(),
         releases_url: RELEASES_URL,
+        system_dark: *state.system_dark.lock().unwrap(),
     }
 }
 
@@ -217,15 +222,21 @@ fn save_settings(app: AppHandle, state: State<'_, AppState>, settings: Settings)
     Ok(s)
 }
 
+/// Apply the theme to the native window (title bar, GTK widgets, WebKit's color scheme).
+///
+/// "System" is resolved explicitly when the desktop preference is known: on Linux, passing
+/// `None` would make tao clear GTK's prefer-dark flag and force a light scheme on dark desktops.
+/// On Windows/macOS `None` correctly follows the OS, including live changes.
 fn apply_theme(app: &AppHandle, theme: Theme) {
-    if let Some(w) = app.get_webview_window("main") {
-        let t = match theme {
-            Theme::System => None,
-            Theme::Light => Some(tauri::Theme::Light),
-            Theme::Dark => Some(tauri::Theme::Dark),
-        };
-        let _ = w.set_theme(t);
-    }
+    let Some(w) = app.get_webview_window("main") else { return };
+    let system = *app.state::<AppState>().system_dark.lock().unwrap();
+    let dark = match theme {
+        Theme::Light => Some(false),
+        Theme::Dark => Some(true),
+        Theme::System if cfg!(target_os = "linux") => system,
+        Theme::System => None,
+    };
+    let _ = w.set_theme(dark.map(|d| if d { tauri::Theme::Dark } else { tauri::Theme::Light }));
 }
 
 #[tauri::command]
@@ -530,6 +541,10 @@ pub fn run() {
     let settings = config_dir.as_deref().map(Settings::load).unwrap_or_default();
     let cwd = std::env::current_dir().ok();
     let launch = platform::launch_paths(std::env::args(), cwd.as_deref());
+    #[cfg(target_os = "linux")]
+    let system_dark = platform::appearance::prefers_dark();
+    #[cfg(not(target_os = "linux"))]
+    let system_dark = None;
 
     tauri::Builder::default()
         // Must be first: a second launch (e.g. double-clicking another vault) forwards its
@@ -557,9 +572,21 @@ pub fn run() {
             quit_requested: AtomicBool::new(false),
             launch_paths: Mutex::new(launch),
             last_output: Mutex::new(None),
+            system_dark: Mutex::new(system_dark),
         })
         .setup(move |app| {
             apply_theme(app.handle(), settings.theme);
+            #[cfg(target_os = "linux")]
+            {
+                let handle = app.handle().clone();
+                platform::appearance::watch(move |dark| {
+                    let st = handle.state::<AppState>();
+                    *st.system_dark.lock().unwrap() = dark;
+                    let theme = st.settings.lock().unwrap().theme;
+                    apply_theme(&handle, theme);
+                    let _ = handle.emit("system-theme", dark);
+                });
+            }
             Ok(())
         })
         .on_window_event(|window, event| {

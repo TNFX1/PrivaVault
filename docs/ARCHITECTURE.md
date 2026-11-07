@@ -75,7 +75,7 @@ PrivaVault 2 never writes v1.
 | Settings | `$XDG_CONFIG_HOME/privavault/settings.json` (fallback `~/.config`) | `%APPDATA%\PrivaVault\settings.json` |
 | Permissions | 0600 files, 0700 dirs | inherited ACL |
 | Dialogs | XDG Desktop Portal (KDE/GNOME native) via `rfd` | Win32 common dialogs |
-| Window identity | Wayland `app_id` = `com.privavault.app`, `.desktop` has matching `StartupWMClass` | AppUserModelID via installer |
+| Window identity | Wayland `app_id` = `com.privavault.app`; the desktop file is named `com.privavault.app.desktop` so KWin/Mutter find the icon | AppUserModelID via installer |
 | File association | shared-mime-info XML (`application/x-privavault`, magic + `*.pvault`), `MimeType=` in desktop file | NSIS registers `.pvault` |
 | Open-with / 2nd launch | `%F` args, `file://` URIs decoded, forwarded by single-instance plugin | same |
 | Packages | AppImage, .deb, .rpm, Arch `PKGBUILD` | NSIS installer (per-user), portable `.exe` |

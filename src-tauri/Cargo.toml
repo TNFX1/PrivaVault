@@ -27,3 +27,8 @@ tauri-build = { version = "2", features = [] }
 
 [dev-dependencies]
 tempfile = "3.27.0"
+
+# Already in the tree via tauri-plugin-notification; used directly to read the desktop's
+# light/dark preference from the XDG portal (see platform::appearance).
+[target.'cfg(target_os = "linux")'.dependencies]
+zbus = "5"

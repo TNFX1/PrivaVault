@@ -75,7 +75,7 @@ limitations are in [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
 
 | System | Get it | Guide |
 | --- | --- | --- |
-| Arch Linux, CachyOS, Manjaro | `cd packaging/arch && PRIVAVAULT_LOCAL_SRC=../.. makepkg -si` | [Linux](docs/LINUX_SETUP.md) |
+| Arch Linux, CachyOS, Manjaro | `privavault-…-x86_64.pkg.tar.zst` from [Releases](https://github.com/TNFX1/PrivaVault/releases), then `sudo pacman -U privavault-*.pkg.tar.zst` | [Linux](docs/LINUX_SETUP.md) |
 | Debian, Ubuntu 22.04+ | `.deb` from [Releases](https://github.com/TNFX1/PrivaVault/releases) | [Linux](docs/LINUX_SETUP.md) |
 | Fedora, openSUSE | `.rpm` from Releases | [Linux](docs/LINUX_SETUP.md) |
 | Any Linux | `.AppImage` from Releases | [Linux](docs/LINUX_SETUP.md) |

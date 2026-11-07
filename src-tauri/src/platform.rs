@@ -123,6 +123,88 @@ fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&out).into_owned()
 }
 
+/// The desktop's light/dark preference on Linux, from the XDG Desktop Portal
+/// (`org.freedesktop.appearance` / `color-scheme`: 0 = no preference, 1 = dark, 2 = light).
+/// KDE Plasma and GNOME implement it; it is the same source Firefox and GTK4 apps use.
+///
+/// Why not just let GTK decide: Tauri/tao resets GTK's `prefer-dark` flag when the theme is
+/// set to "follow system", so WebKit then reports a light scheme on a dark Plasma desktop.
+#[cfg(target_os = "linux")]
+pub mod appearance {
+    use zbus::blocking::{Connection, Proxy};
+    use zbus::zvariant::{OwnedValue, Value};
+
+    const NAMESPACE: &str = "org.freedesktop.appearance";
+    const KEY: &str = "color-scheme";
+
+    fn proxy(conn: &Connection) -> zbus::Result<Proxy<'static>> {
+        Proxy::new(
+            conn,
+            "org.freedesktop.portal.Desktop",
+            "/org/freedesktop/portal/desktop",
+            "org.freedesktop.portal.Settings",
+        )
+    }
+
+    /// Map a portal color-scheme value to "prefers dark" (`None` = no preference).
+    pub fn scheme_to_dark(scheme: u32) -> Option<bool> {
+        match scheme {
+            1 => Some(true),
+            2 => Some(false),
+            _ => None,
+        }
+    }
+
+    fn as_u32(v: &Value) -> Option<u32> {
+        match v {
+            Value::U32(n) => Some(*n),
+            Value::Value(inner) => as_u32(inner), // `Read` (old portals) wraps the value twice
+            _ => None,
+        }
+    }
+
+    /// Current preference, or `None` if there is no portal or no preference.
+    pub fn prefers_dark() -> Option<bool> {
+        let conn = Connection::session().ok()?;
+        let p = proxy(&conn).ok()?;
+        let v: OwnedValue = p.call("ReadOne", &(NAMESPACE, KEY)).or_else(|_| p.call("Read", &(NAMESPACE, KEY))).ok()?;
+        as_u32(&v).and_then(scheme_to_dark)
+    }
+
+    /// Call `on_change` whenever the user switches the desktop between light and dark.
+    pub fn watch(on_change: impl Fn(Option<bool>) + Send + 'static) {
+        std::thread::Builder::new()
+            .name("appearance-watch".into())
+            .spawn(move || {
+                let Ok(conn) = Connection::session() else { return };
+                let Ok(p) = proxy(&conn) else { return };
+                let Ok(signals) = p.receive_signal("SettingChanged") else { return };
+                for msg in signals {
+                    if let Ok((ns, key, value)) = msg.body().deserialize::<(String, String, OwnedValue)>() {
+                        if ns == NAMESPACE && key == KEY {
+                            on_change(as_u32(&value).and_then(scheme_to_dark));
+                        }
+                    }
+                }
+            })
+            .ok();
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn maps_portal_values() {
+            assert_eq!(scheme_to_dark(1), Some(true));
+            assert_eq!(scheme_to_dark(2), Some(false));
+            assert_eq!(scheme_to_dark(0), None);
+            let nested = Value::Value(Box::new(Value::U32(1)));
+            assert_eq!(as_u32(&nested), Some(1));
+        }
+    }
+}
+
 /// Apply WebKitGTK workarounds before the webview starts (Linux only).
 ///
 /// WebKitGTK's DMA-BUF renderer is known to fail on the proprietary NVIDIA driver under Wayland

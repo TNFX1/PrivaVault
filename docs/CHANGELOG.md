@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1 — 2026-11-07
+
+### Linux
+- Fixed: with the theme set to "System", the app showed the light theme on a dark KDE Plasma (or GNOME)
+  desktop. The preference is now read from the XDG Desktop Portal and follows live changes.
+- Fixed: KDE showed a generic Wayland logo instead of the PrivaVault icon in the title bar and task
+  manager. The desktop entry is now named after the Wayland app id (`com.privavault.app.desktop`).
+- New: a ready-made Arch Linux / CachyOS package (`.pkg.tar.zst`) is attached to every release —
+  install with `sudo pacman -U`, no compiling.
+
 ## 2.0.0 — 2026-11-07
 
 A rework of PrivaVault as a cross-platform (Linux + Windows) app with a new, safer vault format.

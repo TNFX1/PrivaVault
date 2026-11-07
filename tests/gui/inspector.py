@@ -145,7 +145,10 @@ class Inspector:
     def wait(self, expression, timeout=20, what=None):
         end = time.time() + timeout
         while time.time() < end:
-            v = self.js(f"return ({expression});")
+            try:
+                v = self.js(f"return ({expression});")
+            except RuntimeError:  # page (re)loading: the evaluation context went away
+                v = None
             if v:
                 return v
             time.sleep(0.25)
