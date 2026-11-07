@@ -25,7 +25,7 @@ tools/v1-fixtures        regenerates 1.x test vaults with the original JS code
 ```bash
 cargo test --workspace            # core (31) + app (9) tests
 cargo run --release -p privavault-core --example bench -- 1024   # throughput
-node --test tests/ui              # UI checks (Node ≥ 18)
+node --test tests/ui/ui.test.js              # UI checks (Node ≥ 18)
 cargo clippy --workspace --all-targets -- -D warnings
 
 cargo run -p privavault           # debug build of the app

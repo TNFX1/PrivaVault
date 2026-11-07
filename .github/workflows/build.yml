@@ -48,7 +48,7 @@ jobs:
         with:
           node-version: 22
       - name: UI tests (i18n, CSP, XSS regression)
-        run: node --test tests/ui
+        run: node --test tests/ui/ui.test.js
 
       - name: RustSec advisories
         if: runner.os == 'Linux'

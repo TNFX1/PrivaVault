@@ -112,7 +112,7 @@ On Linux you need the WebKitGTK 4.1 development files (Arch: `webkit2gtk-4.1`; D
 
 ```bash
 cargo test --workspace           # 40 tests: crypto, both vault formats, tampering, paths, settings
-node --test tests/ui             # UI: translations, CSP rules, XSS regression
+node --test tests/ui/ui.test.js             # UI: translations, CSP rules, XSS regression
 python3 tests/gui/e2e.py         # 40 end-to-end checks against the real app window (Linux desktop)
 ```
 

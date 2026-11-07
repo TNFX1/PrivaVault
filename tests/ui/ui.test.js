@@ -1,4 +1,4 @@
-// UI checks that need no browser: run with `node --test tests/ui`.
+// UI checks that need no browser: run with `node --test tests/ui/ui.test.js`.
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
