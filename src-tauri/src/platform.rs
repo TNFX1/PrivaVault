@@ -39,7 +39,13 @@ impl Os {
 /// * Windows: `%APPDATA%\PrivaVault` (roaming profile, per-user ACL).
 /// * macOS: `~/Library/Application Support/PrivaVault`.
 pub fn config_dir(os: Os, env: impl Fn(&str) -> Option<String>) -> Option<PathBuf> {
-    let abs = |v: Option<String>| v.filter(|s| !s.is_empty()).map(PathBuf::from).filter(|p| p.is_absolute() || looks_absolute_windows(p));
+    // Judge absoluteness by the *target* OS rules so both are testable on any host.
+    let abs = |v: Option<String>| {
+        v.filter(|s| !s.is_empty()).map(PathBuf::from).filter(|p| match os {
+            Os::Windows => looks_absolute_windows(p),
+            _ => p.to_string_lossy().starts_with('/'),
+        })
+    };
     match os {
         Os::Windows => abs(env("APPDATA")).map(|p| p.join(APP_DIR_WINDOWS)),
         Os::Macos => abs(env("HOME")).map(|h| h.join("Library/Application Support").join(APP_DIR_WINDOWS)),

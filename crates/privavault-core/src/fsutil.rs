@@ -14,6 +14,8 @@ pub struct AtomicFile {
     tmp: PathBuf,
     dest: PathBuf,
     writer: Option<BufWriter<File>>,
+    /// Only meaningful on Unix (mode 0700); Windows has no exec bit.
+    #[cfg_attr(not(unix), allow(dead_code))]
     executable: bool,
 }
 

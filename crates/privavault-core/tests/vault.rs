@@ -160,6 +160,9 @@ fn v1_malicious_entry_names_are_never_extracted() {
 // v2
 // ------------------------------------------------------------------------------------------
 
+/// A name with a colon is legal on Linux (and must round-trip) but impossible on Windows.
+const ODD_NAME: &str = if cfg!(windows) { "notes 2024 şğü.md" } else { "notes:2024 şğü.md" };
+
 fn sample_tree(dir: &Path) -> PathBuf {
     let root = dir.join("Project");
     fs::create_dir_all(root.join("sub/deeper")).unwrap();
@@ -167,7 +170,7 @@ fn sample_tree(dir: &Path) -> PathBuf {
     fs::write(root.join("readme.txt"), "hello v2").unwrap();
     fs::write(root.join("empty.txt"), "").unwrap();
     fs::write(root.join("sub/deeper/data.bin"), big_pattern()).unwrap();
-    fs::write(root.join("sub/notes:2024 şğü.md"), "colon + unicode").unwrap();
+    fs::write(root.join("sub").join(ODD_NAME), "colon + unicode").unwrap();
     root
 }
 
@@ -191,7 +194,7 @@ fn v2_roundtrip() {
         names(&v),
         [
             "Project", "Project/empty-dir", "Project/empty.txt", "Project/readme.txt", "Project/sub",
-            "Project/sub/deeper", "Project/sub/deeper/data.bin", "Project/sub/notes:2024 şğü.md",
+            "Project/sub/deeper", "Project/sub/deeper/data.bin", &format!("Project/sub/{ODD_NAME}"),
         ]
     );
     let out = d.path().join("out");
@@ -201,7 +204,7 @@ fn v2_roundtrip() {
     assert_eq!(fs::read(r.join("readme.txt")).unwrap(), b"hello v2");
     assert_eq!(fs::read(r.join("empty.txt")).unwrap(), b"");
     assert_eq!(fs::read(r.join("sub/deeper/data.bin")).unwrap(), big_pattern());
-    assert_eq!(fs::read(r.join("sub/notes:2024 şğü.md")).unwrap(), b"colon + unicode");
+    assert_eq!(fs::read(r.join("sub").join(ODD_NAME)).unwrap(), b"colon + unicode");
     assert!(r.join("empty-dir").is_dir());
 
     // Second extraction never overwrites: it goes to "restored (2)".

@@ -1,0 +1,63 @@
+# Maintainer: TNFX1 <contact@privavault.app>
+#
+# Builds PrivaVault from source against the system WebKitGTK. Local test build from a checkout:
+#   cd packaging/arch && PRIVAVAULT_LOCAL_SRC=../.. makepkg -f
+pkgname=privavault
+pkgver=2.0.0
+pkgrel=1
+pkgdesc="Offline file encryption with password-protected vaults"
+arch=('x86_64' 'aarch64')
+url="https://github.com/TNFX1/PrivaVault"
+license=('MIT')
+depends=('webkit2gtk-4.1' 'gtk3' 'glib2' 'cairo' 'pango' 'gdk-pixbuf2' 'libsoup3' 'hicolor-icon-theme')
+makedepends=('cargo')
+optdepends=('xdg-desktop-portal-kde: native file dialogs on KDE Plasma'
+            'xdg-desktop-portal-gtk: native file dialogs on GNOME and others')
+options=('!lto')
+if [[ -n "$PRIVAVAULT_LOCAL_SRC" ]]; then
+  source=()
+  sha256sums=()
+else
+  source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+  sha256sums=('SKIP') # replace with the real checksum when publishing
+fi
+
+_srcdir() {
+  if [[ -n "$PRIVAVAULT_LOCAL_SRC" ]]; then realpath "$startdir/$PRIVAVAULT_LOCAL_SRC"; else echo "$srcdir/PrivaVault-$pkgver"; fi
+}
+
+prepare() {
+  cd "$(_srcdir)"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$(_srcdir)"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  # custom-protocol = production build that serves the bundled UI (what `cargo tauri build` does).
+  cargo build --frozen --release -p privavault --features tauri/custom-protocol
+}
+
+check() {
+  cd "$(_srcdir)"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo test --frozen --release -p privavault-core
+}
+
+package() {
+  local s; s="$(_srcdir)"
+  install -Dm755 "$srcdir/target/release/privavault" "$pkgdir/usr/bin/privavault"
+  install -Dm644 "$s/packaging/linux/PrivaVault.desktop" "$pkgdir/usr/share/applications/PrivaVault.desktop"
+  install -Dm644 "$s/packaging/linux/privavault-mime.xml" "$pkgdir/usr/share/mime/packages/privavault.xml"
+  install -Dm644 "$s/packaging/linux/com.privavault.app.metainfo.xml" "$pkgdir/usr/share/metainfo/com.privavault.app.metainfo.xml"
+  install -Dm644 "$s/src-tauri/icons/32x32.png" "$pkgdir/usr/share/icons/hicolor/32x32/apps/privavault.png"
+  install -Dm644 "$s/src-tauri/icons/64x64.png" "$pkgdir/usr/share/icons/hicolor/64x64/apps/privavault.png"
+  install -Dm644 "$s/src-tauri/icons/128x128.png" "$pkgdir/usr/share/icons/hicolor/128x128/apps/privavault.png"
+  install -Dm644 "$s/src-tauri/icons/128x128@2x.png" "$pkgdir/usr/share/icons/hicolor/256x256/apps/privavault.png"
+  install -Dm644 "$s/src-tauri/icons/icon.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/privavault.png"
+  install -Dm644 "$s/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 "$s/ui/fonts/LICENSE-OFL.txt" "$pkgdir/usr/share/licenses/$pkgname/IBM-Plex-OFL.txt"
+}
