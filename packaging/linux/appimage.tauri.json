@@ -1,0 +1,12 @@
+{
+  "bundle": {
+    "linux": {
+      "deb": {
+        "desktopTemplate": "../packaging/linux/appimage.desktop.hbs",
+        "files": {
+          "/usr/share/applications/com.privavault.app.desktop": null
+        }
+      }
+    }
+  }
+}

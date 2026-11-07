@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name={{name}}
+GenericName=File Encryption
+GenericName[tr]=Dosya Şifreleme
+Comment=Offline file encryption
+Comment[tr]=Çevrimdışı dosya şifreleme
+Exec={{exec}} %F
+Icon={{icon}}
+Terminal=false
+Categories=Utility;Security;
+Keywords=encrypt;decrypt;vault;privacy;aes;şifrele;kasa;
+StartupWMClass=com.privavault.app
+StartupNotify=true
+{{#if mime_type}}
+MimeType={{mime_type}};
+{{/if}}

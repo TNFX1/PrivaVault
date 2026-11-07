@@ -37,7 +37,8 @@ Use a throw-away settings dir while developing: `XDG_CONFIG_HOME=/tmp/pv-cfg car
 
 ```bash
 cd src-tauri
-cargo tauri build --bundles deb,rpm,appimage    # Linux  → target/release/bundle/{deb,rpm,appimage}
+cargo tauri build --bundles deb,rpm             # Linux  → target/release/bundle/{deb,rpm}
+cargo tauri build --bundles appimage --config ../packaging/linux/appimage.tauri.json   # → bundle/appimage
 cargo tauri build --bundles nsis                # Windows → target/release/bundle/nsis + target/release/privavault.exe
 ```
 

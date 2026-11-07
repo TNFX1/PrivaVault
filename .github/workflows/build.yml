@@ -84,7 +84,17 @@ jobs:
         run: cargo install tauri-cli --version "^2" --locked
       - name: Build bundles
         working-directory: src-tauri
-        run: cargo tauri build --bundles ${{ matrix.bundles }}
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            cargo tauri build --bundles deb,rpm
+            # The AppImage is built from the deb tree but needs a visible desktop entry with
+            # Categories (appimagetool rejects the hidden one deb/rpm use next to
+            # com.privavault.app.desktop), so it gets its own config overlay.
+            cargo tauri build --bundles appimage --config ../packaging/linux/appimage.tauri.json
+          else
+            cargo tauri build --bundles ${{ matrix.bundles }}
+          fi
 
       - name: Collect artifacts (Linux)
         if: runner.os == 'Linux'

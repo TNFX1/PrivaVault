@@ -1,6 +1,20 @@
 # Changelog
 
-## 2.0.1 — 2026-11-07
+## 2.1.0 — 2026-11-07
+
+(Includes the fixes prepared as 2.0.1, which was never published because its Linux AppImage build failed.)
+
+### Interface
+- Sidebar: a *Protection* summary (cipher, password-protection strength, auto-lock) with a shortcut to
+  Settings, and *This session* — what you locked, opened and extracted, kept in memory only and forgotten
+  when you quit.
+- Keyboard shortcuts: Ctrl+N lock files, Ctrl+O open a vault, Ctrl+L lock the open vault, Ctrl+, settings.
+- Motion that follows your actions: the navigation marker slides, screens fade in, the lock on the dial
+  closes when files are added, new rows slide in, the success check mark draws itself, and the password
+  form shakes on a wrong password. Turned off when the system asks for reduced motion.
+
+### Packaging
+- Fixed: the Linux AppImage build failed (`.desktop file is missing a Categories= key`).
 
 ### Linux
 - Fixed: with the theme set to "System", the app showed the light theme on a dark KDE Plasma (or GNOME)
