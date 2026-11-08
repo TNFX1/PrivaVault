@@ -19,7 +19,7 @@
   </p>
 </div>
 
-<p align="center"><img src="assets/preview.png" alt="An unlocked vault in PrivaVault's dark theme, listing folders and files with Save buttons" width="820"></p>
+<p align="center"><img src="assets/preview.png" alt="An unlocked vault in PrivaVault's dark theme: folders and files with Save buttons, and a sidebar showing the protection settings, this session's activity and the auto-lock countdown" width="820"></p>
 
 ## What it does
 
@@ -29,8 +29,16 @@ writes everything into one encrypted `.pvault` file. Your originals stay where t
 **Open a vault.** Unlocking shows the contents straight away, without decrypting everything first. Save
 a single file, extract the whole vault into a new folder, or export a plain ZIP.
 
+**See how you're protected.** The sidebar sums up the cipher, the password-protection strength and the
+auto-lock time, and lists what you locked, opened and extracted in this session. That list is kept in
+memory only and forgotten when you quit.
+
 **Stay offline.** Nothing leaves your computer. The sidebar always shows the network status. The only
-optional request is an update check, and it stays off until you turn it on.
+optional request is an update check, and it stays off until you turn it on or press *Check now*.
+
+**Update in one click.** When a new version is found, *Update now* downloads it, checks it against
+PrivaVault's signature and installs it (Windows installer, AppImage, `.deb`, `.rpm` and the Arch
+package). A modified package is refused before anything is installed.
 
 **Open your 1.x vaults.** Every vault made by PrivaVault 1.x opens in 2.0.
 
@@ -40,7 +48,8 @@ optional request is an update check, and it stays off until you turn it on.
 | <img src="docs/screenshots/vault-light.png" alt="Unlocked vault in the light theme" width="420"> | <img src="docs/screenshots/vault-dark.png" alt="Unlocked vault in the dark theme" width="420"> |
 
 The theme follows your system, or you can pick light or dark in Settings. The interface is available in
-English and Turkish.
+English and Turkish. Keyboard shortcuts: <kbd>Ctrl</kbd>+<kbd>N</kbd> lock files, <kbd>Ctrl</kbd>+<kbd>O</kbd>
+open a vault, <kbd>Ctrl</kbd>+<kbd>L</kbd> lock the open vault, <kbd>Ctrl</kbd>+<kbd>,</kbd> settings.
 
 ## How your files are protected
 
@@ -115,10 +124,13 @@ On Linux you need the WebKitGTK 4.1 development files (Arch: `webkit2gtk-4.1`; D
 ### Tests
 
 ```bash
-cargo test --workspace           # 40 tests: crypto, both vault formats, tampering, paths, settings
+cargo test --workspace           # 42 tests: crypto, both vault formats, tampering, paths, settings
 node --test tests/ui/ui.test.js             # UI: translations, CSP rules, XSS regression
 python3 tests/gui/e2e.py         # 40 end-to-end checks against the real app window (Linux desktop)
 ```
+
+`tests/gui/update_e2e.py` checks one-click updates against a local fake release (a tampered package
+must be refused), and `tests/gui/screenshots.py` regenerates the screenshots in this README.
 
 The v1 compatibility tests use vaults produced by the original 1.4.0 JavaScript code
 ([tools/v1-fixtures](tools/v1-fixtures)). CI runs the Rust and UI tests on Ubuntu and Windows.
@@ -170,6 +182,10 @@ koyu seçilebilir.
 * **Koruma:** scrypt (128–512 MiB) ve kimliği doğrulanmış 64 KiB parçalarda AES-256-GCM. Her parça diske
   yazılmadan önce doğrulanır.
 * **Parola kurtarma yoktur.** Parolayı unutursanız kasa hiç kimse tarafından açılamaz.
+* **Kenar çubuğu:** Şifreleme, parola koruması ve otomatik kilit özeti; bu oturumda kilitlediğiniz, açtığınız
+  ve çıkardığınız dosyaların listesi (yalnızca bellekte tutulur, çıkışta unutulur).
+* **Tek tıkla güncelleme:** Güncelleme denetimi varsayılan olarak kapalıdır. Yeni sürüm bulunduğunda
+  *Şimdi güncelle* paketi indirir, PrivaVault imzasıyla doğrular ve kurar.
 * 1.x ile oluşturulan kasalar 2.0'da açılır.
 
 Kurulum için yukarıdaki [Install](#install) tablosuna, ayrıntılar için `docs/` klasörüne bakın.
