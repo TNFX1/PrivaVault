@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.3.0 — 2026-11-08
 
 ### Vaults
 - Add files to an open vault and remove files or folders from it. The vault is rewritten with a fresh

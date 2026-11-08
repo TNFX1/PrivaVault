@@ -3,7 +3,7 @@
 # Builds PrivaVault from source against the system WebKitGTK. Local test build from a checkout:
 #   cd packaging/arch && PRIVAVAULT_LOCAL_SRC=../.. makepkg -f
 pkgname=privavault
-pkgver=2.2.1
+pkgver=2.3.0
 pkgrel=1
 pkgdesc="Offline file encryption with password-protected vaults"
 arch=('x86_64' 'aarch64')

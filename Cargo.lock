@@ -2900,7 +2900,7 @@ checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
 name = "privavault"
-version = "2.2.1"
+version = "2.3.0"
 dependencies = [
  "getrandom 0.3.4",
  "privavault-core",
@@ -2920,7 +2920,7 @@ dependencies = [
 
 [[package]]
 name = "privavault-core"
-version = "2.2.1"
+version = "2.3.0"
 dependencies = [
  "aead",
  "aes",

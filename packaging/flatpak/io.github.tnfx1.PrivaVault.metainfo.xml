@@ -69,6 +69,9 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="2.3.0" date="2026-11-08">
+      <description><p>Add and remove files in a vault, change its password, check it, preview images and text without saving them, and optionally delete the originals after locking.</p></description>
+    </release>
     <release version="2.2.1" date="2026-11-08">
       <description><p>Packaging and release reliability improvements.</p></description>
     </release>
