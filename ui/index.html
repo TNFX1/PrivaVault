@@ -120,6 +120,7 @@
               <p class="hint" id="pwMatch"></p>
 
               <p class="note" data-i18n="enc.noRecovery"></p>
+              <label class="check"><input type="checkbox" id="encDelete"><span><b data-i18n="enc.deleteOriginals"></b><small data-i18n="enc.deleteHint"></small></span></label>
               <button type="submit" class="btn primary wide" id="btnEncrypt" data-i18n="enc.submit"></button>
               <p class="msg" id="encMsg" role="alert" hidden></p>
             </form>
@@ -191,6 +192,11 @@
               <button class="btn ghost" id="btnLock" data-i18n="vault.lock"></button>
             </div>
           </header>
+          <div class="row gap vault-tools">
+            <button class="btn" id="btnAddFiles" data-i18n="vault.add"></button>
+            <button class="btn" id="btnVerify" data-i18n="vault.verify"></button>
+            <button class="btn" id="btnChangePw" data-i18n="vault.changePw"></button>
+          </div>
           <p class="legacy" id="legacyNote" hidden data-i18n="vault.legacy"></p>
           <p class="warn-line" id="unsafeNote" hidden></p>
           <div class="toolbar">
@@ -316,6 +322,33 @@
           <li><b data-i18n="ob.f3t"></b><span data-i18n="ob.f3"></span></li>
         </ul>
         <button class="btn primary wide" id="obDone" data-i18n="ob.done"></button>
+      </dialog>
+
+      <dialog id="pwPrompt" aria-labelledby="ppTitle">
+        <form id="ppForm" method="dialog">
+          <h2 id="ppTitle"></h2>
+          <p id="ppBody"></p>
+          <label for="ppPw" data-i18n="vault.currentPw"></label>
+          <input type="password" id="ppPw" autocomplete="current-password" spellcheck="false">
+          <div id="ppNewFields" hidden>
+            <label for="ppNew" data-i18n="vault.newPw"></label>
+            <input type="password" id="ppNew" autocomplete="new-password" spellcheck="false">
+            <label for="ppNew2" data-i18n="vault.newPw2"></label>
+            <input type="password" id="ppNew2" autocomplete="new-password" spellcheck="false">
+          </div>
+          <p class="msg" id="ppMsg" role="alert" hidden></p>
+          <div class="row gap end">
+            <button type="button" class="btn" id="ppCancel" data-i18n="common.cancel"></button>
+            <button type="submit" class="btn primary" id="ppOk" data-i18n="vault.saveChange"></button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog id="preview" class="preview" aria-labelledby="pvTitle">
+        <h2 id="pvTitle"></h2>
+        <p class="hint" data-i18n="vault.previewHint"></p>
+        <div id="pvBody" class="preview-body"></div>
+        <div class="row gap end"><button class="btn" id="pvClose" data-i18n="common.close"></button></div>
       </dialog>
 
       <dialog id="confirmQuit" aria-labelledby="cqTitle">

@@ -78,6 +78,7 @@ function fmtDate(unix) {
 function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
+    if (v == null) continue;
     if (k === "class") el.className = v;
     else if (k === "text") el.textContent = v;
     // CSS custom properties via CSSOM: allowed by the CSP (a style="" attribute would be blocked).
@@ -273,7 +274,7 @@ async function startEncrypt(ev) {
   if (pw !== pw2) { shake($("encPwForm")); return showMsg(msg, t("err.mismatch")); }
   showMsg(msg, "");
   try {
-    const res = await runOp(() => invoke("encrypt", { paths: state.selection.map((s) => s.path), password: pw, suggestedName: suggestedName() }));
+    const res = await runOp(() => invoke("encrypt", { paths: state.selection.map((s) => s.path), password: pw, suggestedName: suggestedName(), deleteOriginals: $("encDelete").checked }));
     if (!res) return; // dialog dismissed
     $("encPw").value = $("encPw2").value = "";
     updateMeter();
@@ -295,7 +296,9 @@ async function startEncrypt(ev) {
 function renderEncResult() {
   const res = state.encResult;
   if (!res) return;
-  $("encResultText").textContent = t("enc.doneText", { files: res.files, size: fmtBytes(res.bytes) });
+  $("encResultText").textContent = t("enc.doneText", { files: res.files, size: fmtBytes(res.bytes) })
+    + (res.originals_deleted ? ` ${t("enc.deleted")}` : "")
+    + (res.left_behind?.length ? ` ${t("enc.leftBehind", { n: res.left_behind.length })}` : "");
   $("encResultPath").textContent = res.output;
   $("encSkipped").hidden = res.skipped.length === 0;
   $("encSkipped").textContent = t("enc.skipped", { n: res.skipped.length });
@@ -442,18 +445,137 @@ function renderRows() {
     const cut = Math.max(trimmed.lastIndexOf("/"), trimmed.lastIndexOf("\\"));
     const dir = cut >= 0 ? trimmed.slice(0, cut + 1) : "";
     const base = cut >= 0 ? trimmed.slice(cut + 1) : trimmed;
-    const name = h("div", { class: "entry-name", title: e.unsafe_path ? t("vault.unsafeEntry") : e.path },
+    const kind = !e.is_dir && !e.unsafe_path ? previewKind(base, e.size) : null;
+    const name = h("div", { class: `entry-name${kind ? " previewable" : ""}`, title: e.unsafe_path ? t("vault.unsafeEntry") : e.path },
       icon(e.is_dir ? "dir" : "file"),
-      h("span", { class: "label" }, dir ? h("span", { class: "dir", text: dir }) : null, base));
-    const action = e.is_dir || e.unsafe_path ? "" :
+      h("span", { class: "label", role: kind ? "button" : null, tabindex: kind ? "0" : null,
+        onclick: kind ? () => preview(e, kind) : null,
+        onkeydown: kind ? (ev) => (ev.key === "Enter" || ev.key === " ") && (ev.preventDefault(), preview(e, kind)) : null },
+        dir ? h("span", { class: "dir", text: dir }) : null, base));
+    const save = e.is_dir || e.unsafe_path ? null :
       h("button", { class: "btn", type: "button", text: t("vault.save"), "aria-label": `${t("vault.save")} ${base}`,
         onclick: () => extractOne(e.index) });
+    const remove = h("button", { class: "btn ghost", type: "button", text: t("vault.remove"), "aria-label": `${t("vault.remove")} ${base}`,
+      onclick: () => removeEntry(e, base) });
+    const action = h("span", {}, save, remove);
     return h("tr", { class: e.unsafe_path ? "unsafe" : "", vars: { "--i": Math.min(i, 30) } },
       h("td", {}, name),
       h("td", { class: "num", text: e.is_dir ? "" : fmtBytes(e.size) }),
       h("td", { class: "when", text: fmtDate(e.modified) }),
       h("td", { class: "act" }, action));
   }));
+}
+
+// ---------------------------------------------------------------- editing the open vault
+
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|avif)$/i;
+const TEXT_EXT = /\.(txt|md|log|csv|json|xml|ini|cfg|conf|ya?ml|toml)$/i;
+const PREVIEW_MAX = 25 * 1024 * 1024;
+
+function previewKind(name, size) {
+  if (size > PREVIEW_MAX) return null;
+  if (IMAGE_EXT.test(name)) return "image";
+  if (TEXT_EXT.test(name)) return "text";
+  return null;
+}
+
+/** Ask for the vault password (and a new one when `change`). Resolves null on cancel. */
+function askPassword({ title, body, change = false }) {
+  const dlg = $("pwPrompt");
+  $("ppTitle").textContent = title;
+  $("ppBody").textContent = body;
+  $("ppNewFields").hidden = !change;
+  for (const id of ["ppPw", "ppNew", "ppNew2"]) $(id).value = "";
+  showMsg($("ppMsg"), "");
+  dlg.showModal();
+  $("ppPw").focus();
+  return new Promise((resolve) => {
+    const done = (value) => {
+      $("ppForm").onsubmit = $("ppCancel").onclick = dlg.oncancel = null;
+      for (const id of ["ppPw", "ppNew", "ppNew2"]) $(id).value = "";
+      dlg.close();
+      resolve(value);
+    };
+    $("ppCancel").onclick = () => done(null);
+    dlg.oncancel = () => done(null);
+    $("ppForm").onsubmit = (ev) => {
+      ev.preventDefault();
+      const password = $("ppPw").value;
+      if (!password) return showMsg($("ppMsg"), t("err.no_password"));
+      if (change) {
+        const next = $("ppNew").value;
+        if (next.length < 8) return showMsg($("ppMsg"), t("err.weak"));
+        if (next !== $("ppNew2").value) return showMsg($("ppMsg"), t("err.mismatch"));
+        return done({ password, newPassword: next });
+      }
+      done({ password, newPassword: null });
+    };
+  });
+}
+
+async function editVault(args, okText) {
+  state.lastActivity = Date.now();
+  showMsg($("vaultMsg"), "");
+  try {
+    const res = await runOp(() => invoke("edit_vault", { remove: [], add: [], newPassword: null, ...args }));
+    state.vault = res;
+    renderVault();
+    showMsg($("vaultMsg"), okText, true);
+  } catch (e) {
+    showMsg($("vaultMsg"), errText(e));
+  }
+}
+
+async function addFiles() {
+  const picked = await invoke("pick_inputs", { folders: false }).catch(() => []);
+  if (!picked?.length) return;
+  const answer = await askPassword({ title: t("vault.addTitle"), body: t("vault.addBody", { n: picked.length }) });
+  if (answer) await editVault({ password: answer.password, add: picked.map((p) => p.path) }, t("vault.changed"));
+}
+
+async function removeEntry(entry, base) {
+  const answer = await askPassword({ title: t("vault.removeTitle"), body: t("vault.removeBody", { name: base }) });
+  if (answer) await editVault({ password: answer.password, remove: [entry.path] }, t("vault.changed"));
+}
+
+async function changePassword() {
+  const answer = await askPassword({ title: t("vault.pwTitle"), body: t("vault.pwBody"), change: true });
+  if (answer) await editVault(answer, t("vault.pwChanged"));
+}
+
+async function verifyVault() {
+  state.lastActivity = Date.now();
+  showMsg($("vaultMsg"), "");
+  try {
+    const bytes = await runOp(() => invoke("verify_vault"));
+    showMsg($("vaultMsg"), t("vault.verified", { size: fmtBytes(bytes) }), true);
+  } catch (e) {
+    showMsg($("vaultMsg"), errText(e));
+  }
+}
+
+let previewUrl = null;
+async function preview(entry, kind) {
+  state.lastActivity = Date.now();
+  try {
+    const buf = await runOp(() => invoke("preview_entry", { index: entry.index }));
+    const body = $("pvBody");
+    body.replaceChildren();
+    if (kind === "image") {
+      previewUrl = URL.createObjectURL(new Blob([buf]));
+      body.append(h("img", { src: previewUrl, alt: entry.path }));
+    } else {
+      body.append(h("pre", { text: new TextDecoder().decode(buf.slice(0, 512 * 1024)) }));
+    }
+    $("pvTitle").textContent = entry.path;
+    $("preview").showModal();
+  } catch (e) {
+    showMsg($("vaultMsg"), errText(e));
+  }
+}
+
+function closePreview() {
+  $("preview").close();
 }
 
 async function vaultOp(cmd, describe) {
@@ -690,6 +812,16 @@ function wire() {
     state.settings = await invoke("save_settings", { settings: { ...state.settings, onboarding_done: true } });
   });
   $("cqStay").addEventListener("click", () => $("confirmQuit").close());
+  $("btnAddFiles").addEventListener("click", addFiles);
+  $("btnVerify").addEventListener("click", verifyVault);
+  $("btnChangePw").addEventListener("click", changePassword);
+  $("pvClose").addEventListener("click", closePreview);
+  // Preview bytes live only as long as the dialog: drop the object URL and the DOM copy on close.
+  $("preview").addEventListener("close", () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    $("pvBody").replaceChildren();
+  });
   $("cqQuit").addEventListener("click", () => invoke("quit_app"));
 
   $("railChange").addEventListener("click", () => showView("settings"));

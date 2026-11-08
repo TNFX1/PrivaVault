@@ -331,6 +331,8 @@ struct EncryptResult {
     folders: usize,
     bytes: u64,
     skipped: Vec<PathBuf>,
+    originals_deleted: bool,
+    left_behind: Vec<PathBuf>,
 }
 
 #[tauri::command]
@@ -339,6 +341,7 @@ async fn encrypt(
     paths: Vec<PathBuf>,
     password: String,
     suggested_name: String,
+    delete_originals: Option<bool>,
 ) -> CmdResult<Option<EncryptResult>> {
     let password = Zeroizing::new(password);
     if paths.is_empty() {
@@ -359,12 +362,21 @@ async fn encrypt(
         };
         let rep = create_vault(&paths, &out, &password, kdf, job)?;
         *app.state::<AppState>().last_output.lock().unwrap() = Some(rep.output.clone());
+        // Originals go only after the new vault reopens with this password and every byte checks out.
+        let left = if delete_originals.unwrap_or(false) {
+            Vault::open(&rep.output, &password, job)?.verify(job)?;
+            Some(privavault_core::remove_originals(&paths, &rep.encrypted))
+        } else {
+            None
+        };
         Ok(Some(EncryptResult {
             output: rep.output,
             files: rep.files,
             folders: rep.folders,
             bytes: rep.bytes,
             skipped: rep.skipped,
+            originals_deleted: left.is_some(),
+            left_behind: left.unwrap_or_default(),
         }))
     })
     .await
@@ -413,6 +425,69 @@ async fn lock_vault(app: AppHandle) {
         app.state::<AppState>().session.lock().unwrap().take();
     })
     .await;
+}
+
+/// Add files to / remove entries from the open vault, or give it a new password. The vault is
+/// rewritten (fresh salt and nonce) next to itself and replaces the old file only when complete.
+/// `password` is the current one, checked first so a typo can't silently re-key the vault.
+#[tauri::command]
+async fn edit_vault(
+    app: AppHandle,
+    password: String,
+    new_password: Option<String>,
+    remove: Vec<String>,
+    add: Vec<PathBuf>,
+) -> CmdResult<OpenResult> {
+    let password = Zeroizing::new(password);
+    let new_password = new_password.map(Zeroizing::new);
+    let kdf = app.state::<AppState>().settings.lock().unwrap().strength.params();
+    run_job(&app, move |app, job| {
+        let st = app.state::<AppState>();
+        let path = st
+            .session
+            .lock()
+            .unwrap()
+            .as_ref()
+            .map(|s| s.path.clone())
+            .ok_or_else(|| err("locked", "no vault is open"))?;
+        let mut source = Vault::open(&path, &password, job)?; // wrong password → WrongPassword, nothing written
+        let final_pw: &str = new_password.as_deref().map(|p| p.as_str()).unwrap_or(&password);
+        source.rewrite(&path, final_pw, kdf, &remove, &add, job)?;
+        drop(source);
+        st.session.lock().unwrap().take();
+        let vault = Vault::open(&path, final_pw, job)?;
+        let res = OpenResult {
+            name: privavault_core::paths::display_name(&path),
+            size: std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0),
+            format: vault.format(),
+            kdf: vault.kdf_description(),
+            entries: vault.entries().to_vec(),
+            path: path.clone(),
+        };
+        *st.session.lock().unwrap() = Some(Session { path, vault });
+        Ok(res)
+    })
+    .await
+}
+
+/// Decrypt and authenticate the whole open vault without writing anything.
+#[tauri::command]
+async fn verify_vault(app: AppHandle) -> CmdResult<u64> {
+    run_job(&app, move |app, job| with_session(app, |s| Ok(s.vault.verify(job)?))).await
+}
+
+const PREVIEW_MAX: u64 = 25 * 1024 * 1024;
+
+/// One file's bytes for an in-memory preview (images, text). Nothing touches the disk.
+#[tauri::command]
+async fn preview_entry(app: AppHandle, index: usize) -> CmdResult<tauri::ipc::Response> {
+    run_job(&app, move |app, job| {
+        with_session(app, |s| {
+            let bytes = s.vault.read_entry(index, PREVIEW_MAX, job)?;
+            Ok(tauri::ipc::Response::new(bytes.to_vec()))
+        })
+    })
+    .await
 }
 
 fn with_session<T>(app: &AppHandle, f: impl FnOnce(&mut Session) -> CmdResult<T>) -> CmdResult<T> {
@@ -663,6 +738,9 @@ pub fn run() {
             encrypt,
             open_vault,
             lock_vault,
+            edit_vault,
+            verify_vault,
+            preview_entry,
             extract_entry,
             extract_all,
             export_zip,

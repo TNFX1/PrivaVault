@@ -216,8 +216,15 @@ pub struct Collected {
 /// Walk the selected paths. Symlinks *inside* folders are never followed (no loops, no escaping
 /// the selected tree); special files are skipped and reported.
 pub fn collect_inputs(inputs: &[PathBuf]) -> Result<Collected> {
+    collect_inputs_beside(inputs, std::collections::HashSet::new())
+}
+
+/// Like [`collect_inputs`], but top-level names already in `taken` (lower-cased) get a ` (2)` suffix.
+pub fn collect_inputs_beside(
+    inputs: &[PathBuf],
+    mut top_names: std::collections::HashSet<String>,
+) -> Result<Collected> {
     let mut c = Collected::default();
-    let mut top_names = std::collections::HashSet::new();
     for input in inputs {
         let meta = std::fs::metadata(input).ctx(|| format!("cannot read {}", input.display()))?;
         let Some(base) = input.file_name().and_then(|n| n.to_str()).map(str::to_owned) else {
@@ -298,6 +305,8 @@ pub struct CreateReport {
     pub folders: usize,
     pub bytes: u64,
     pub skipped: Vec<PathBuf>,
+    /// The files from disk that are now inside the vault (for "delete originals").
+    pub encrypted: Vec<PathBuf>,
 }
 
 struct ChunkSink<'a, W: Write> {
@@ -309,6 +318,16 @@ struct ChunkSink<'a, W: Write> {
     index: u32,
     buf: Zeroizing<Vec<u8>>,
     out: &'a mut W,
+}
+
+impl<W: Write> Write for ChunkSink<'_, W> {
+    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
+        self.push(data).map_err(std::io::Error::other)?;
+        Ok(data.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }
 
 impl<W: Write> ChunkSink<'_, W> {
@@ -351,17 +370,23 @@ impl<W: Write> ChunkSink<'_, W> {
     }
 }
 
-pub fn create(inputs: &[PathBuf], output: &Path, password: &str, kdf: ScryptParams, job: &Job) -> Result<CreateReport> {
+/// Write a new v2 vault with `entries`, asking `emit(i, out, job)` for the bytes of each file entry
+/// (exactly `entries[i].size` of them). Fresh salt and nonce every time, so rewriting a vault never
+/// reuses a key/nonce pair. The output is atomic: nothing replaces `output` unless all went well.
+pub(crate) fn write_vault(
+    entries: &[ManifestEntry],
+    output: &Path,
+    password: &str,
+    kdf: ScryptParams,
+    job: &Job,
+    mut emit: impl FnMut(usize, &mut dyn Write, &Job) -> Result<()>,
+) -> Result<PathBuf> {
     if password.is_empty() {
         return Err(Error::InvalidParams("empty password"));
     }
     kdf.validate()?;
-    let collected = collect_inputs(inputs)?;
-    if let Some(src) = collected.sources.iter().flatten().find(|s| same_file(s, output)) {
-        return Err(Error::OutputIsInput(src.clone()));
-    }
-
-    let manifest = Manifest { version: 1, entries: collected.entries.clone() };
+    let total_files: u64 = entries.iter().filter(|e| e.kind == EntryKind::File).map(|e| e.size).sum();
+    let manifest = Manifest { version: 1, entries: entries.to_vec() };
     let manifest_json = Zeroizing::new(serde_json::to_vec(&manifest).expect("manifest serialises"));
     let mut header = Header {
         kdf,
@@ -369,7 +394,7 @@ pub fn create(inputs: &[PathBuf], output: &Path, password: &str, kdf: ScryptPara
         salt: random()?,
         nonce: random()?,
         manifest_len: manifest_json.len() as u64,
-        total_len: manifest_json.len() as u64 + collected.total_bytes,
+        total_len: manifest_json.len() as u64 + total_files,
         key_check: [0; 16],
     };
     if header.manifest_len > MAX_MANIFEST_LEN {
@@ -399,41 +424,79 @@ pub fn create(inputs: &[PathBuf], output: &Path, password: &str, kdf: ScryptPara
         out: out.writer(),
     };
     sink.push(&manifest_json)?;
-
-    let total_files = collected.total_bytes;
-    let mut done_files = 0u64;
-    let mut read_buf = Zeroizing::new(vec![0u8; 1 << 20]);
     job.report(Phase::Encrypting, 0, total_files);
-    for (entry, src) in collected.entries.iter().zip(&collected.sources) {
-        let Some(src) = src else { continue };
-        let mut f = File::open(src).ctx(|| format!("cannot open {}", src.display()))?;
-        let mut remaining = entry.size;
-        while remaining > 0 {
-            job.check_cancel()?;
-            let want = remaining.min(read_buf.len() as u64) as usize;
-            let n = f.read(&mut read_buf[..want]).ctx(|| format!("cannot read {}", src.display()))?;
-            if n == 0 {
-                return Err(Error::FileChanged(src.clone())); // shrank
-            }
-            sink.push(&read_buf[..n])?;
-            remaining -= n as u64;
-            done_files += n as u64;
-            job.report(Phase::Encrypting, done_files, total_files);
+    for (i, entry) in entries.iter().enumerate() {
+        if entry.kind != EntryKind::File {
+            continue;
         }
-        if f.read(&mut read_buf[..1]).ctx(|| format!("cannot read {}", src.display()))? != 0 {
-            return Err(Error::FileChanged(src.clone())); // grew
+        job.check_cancel()?;
+        let before = sink.done + sink.buf.len() as u64;
+        emit(i, &mut sink, job)?;
+        if sink.done + sink.buf.len() as u64 - before != entry.size {
+            return Err(Error::InvalidParams("entry size changed while writing"));
         }
     }
     sink.finish()?;
     job.check_cancel()?;
-    let output = out.commit(true)?;
+    out.commit(true)
+}
+
+/// Copy exactly `size` bytes of `src` to `out`; a file that shrank or grew meanwhile is an error.
+pub(crate) fn copy_file(
+    src: &Path,
+    size: u64,
+    out: &mut dyn Write,
+    job: &Job,
+    done: &mut u64,
+    total: u64,
+) -> Result<()> {
+    let mut f = File::open(src).ctx(|| format!("cannot open {}", src.display()))?;
+    let mut read_buf = Zeroizing::new(vec![0u8; 1 << 20]);
+    let mut remaining = size;
+    while remaining > 0 {
+        job.check_cancel()?;
+        let want = remaining.min(read_buf.len() as u64) as usize;
+        let n = f.read(&mut read_buf[..want]).ctx(|| format!("cannot read {}", src.display()))?;
+        if n == 0 {
+            return Err(Error::FileChanged(src.to_path_buf()));
+        }
+        out.write_all(&read_buf[..n]).ctx(|| "cannot write vault".into())?;
+        remaining -= n as u64;
+        *done += n as u64;
+        job.report(Phase::Encrypting, *done, total);
+    }
+    if f.read(&mut read_buf[..1]).ctx(|| format!("cannot read {}", src.display()))? != 0 {
+        return Err(Error::FileChanged(src.to_path_buf()));
+    }
+    Ok(())
+}
+
+pub fn create(inputs: &[PathBuf], output: &Path, password: &str, kdf: ScryptParams, job: &Job) -> Result<CreateReport> {
+    if password.is_empty() {
+        return Err(Error::InvalidParams("empty password"));
+    }
+    let collected = collect_inputs(inputs)?;
+    if let Some(src) = collected.sources.iter().flatten().find(|s| same_file(s, output)) {
+        return Err(Error::OutputIsInput(src.clone()));
+    }
+    let mut done = 0u64;
+    let total = collected.total_bytes;
+    let output = write_vault(&collected.entries, output, password, kdf, job, |i, out, job| {
+        let src = collected.sources[i].as_ref().expect("file entries have a source");
+        copy_file(src, collected.entries[i].size, out, job, &mut done, total)
+    })?;
     Ok(CreateReport {
         output,
         files: collected.sources.iter().filter(|s| s.is_some()).count(),
         folders: collected.sources.iter().filter(|s| s.is_none()).count(),
         bytes: collected.total_bytes,
+        encrypted: collected.sources.iter().flatten().cloned().collect(),
         skipped: collected.skipped,
     })
+}
+
+pub(crate) fn same_file_pub(a: &Path, b: &Path) -> bool {
+    same_file(a, b)
 }
 
 fn random<const N: usize>() -> Result<[u8; N]> {

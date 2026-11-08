@@ -198,6 +198,30 @@ def main():
         check("single file extracted byte-identical", out_dng.exists() and sha(out_dng) == sha(data / "Vacation 2026/raw/IMG_0412.dng"))
         app.type("vaultFilter", "")
 
+        # --- edit the open vault: add, remove, preview, verify, change password -------------------
+        note = data / "added-note.txt"
+        note.write_text("hello from the vault")
+        call = lambda js: app.js(f'return window.__TAURI__.core.invoke({js}).then(r => r, e => ({{error: e.code}}));')
+        r = call(f'"edit_vault", {{password: "wrong password", remove: [], add: [{json.dumps(str(note))}], newPassword: null}}')
+        check("edit with a wrong password is refused", r.get("error") == "wrong_password", r)
+        r = call(f'"edit_vault", {{password: {json.dumps(pw)}, remove: ["passport.pdf"], add: [{json.dumps(str(note))}], newPassword: null}}')
+        paths = [e["path"] for e in r.get("entries", [])]
+        check("file added and file removed", "added-note.txt" in paths and "passport.pdf" not in paths, paths)
+        idx = next((e["index"] for e in r.get("entries", []) if e["path"] == "added-note.txt"), -1)
+        text = app.js(f'return window.__TAURI__.core.invoke("preview_entry", {{index: {idx}}}).then(b => new TextDecoder().decode(b));')
+        check("preview reads the file from memory", text == "hello from the vault", text)
+        r = call('"verify_vault"')
+        check("verify checks every byte", isinstance(r, int) and r > 0, r)
+        new_pw = pw + " changed"
+        r = call(f'"edit_vault", {{password: {json.dumps(pw)}, remove: [], add: [], newPassword: {json.dumps(new_pw)}}}')
+        check("password changed and vault reopened", "entries" in r, r)
+        app.js('return window.__TAURI__.core.invoke("lock_vault").then(() => 1);')
+        r = call(f'"open_vault", {{path: {json.dumps(str(vault))}, password: {json.dumps(pw)}}}')
+        check("old password no longer opens it", r.get("error") == "wrong_password", r)
+        r = call(f'"open_vault", {{path: {json.dumps(str(vault))}, password: {json.dumps(new_pw)}}}')
+        check("new password opens it", "entries" in r, r)
+        pw = new_pw
+
         app.run("btnExtractAll", "extract all")
         root = work / "out" / vault.stem
         check("extract all creates a folder named after the vault", root.is_dir())
@@ -221,7 +245,7 @@ def main():
         app.wait('!document.getElementById("vaultPane").hidden', what="evil open")
         check("legacy notice for 1.x vault", app.visible("legacyNote"))
         check("unsafe entries warned", app.visible("unsafeNote") and "2 entries" in app.text("unsafeNote"), app.text("unsafeNote"))
-        check("unsafe rows have no Save button", app.js('return [...document.querySelectorAll("#vaultRows tr.unsafe")].every(r => !r.querySelector("button"));'))
+        check("unsafe rows have no Save button", app.js('return [...document.querySelectorAll("#vaultRows tr.unsafe")].every(r => ![...r.querySelectorAll("button")].some(b => b.textContent === t("vault.save")));'))
         check("XSS payload name is inert text", app.js('return document.querySelectorAll("#vaultRows img").length === 0 && document.body.textContent.includes("<img src=x onerror=alert(1)>.txt");'))
         shot(app, a.shots, "05-evil-vault")
         app.run("btnExtractAll", "evil extract")

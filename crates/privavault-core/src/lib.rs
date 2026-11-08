@@ -14,6 +14,7 @@ pub mod v1;
 pub mod v2;
 
 pub use error::{Error, Result};
+pub use fsutil::remove_originals;
 pub use kdf::{ScryptParams, Strength};
 pub use v2::CreateReport;
 
@@ -188,6 +189,95 @@ impl Vault {
             Vault::V1(v) => v.copy_entry(index, out, job, base, total),
             Vault::V2(v) => v.copy_entry(index, out, job, base, total),
         }
+    }
+
+    /// Write this vault's contents — minus `remove` (vault paths; a folder takes its contents with
+    /// it), plus `add` (files/folders from disk, at the top level) — to a new v2 vault at `output`
+    /// protected by `password`. Used to add/remove files and to change the password; v1 vaults come
+    /// out as v2. `output` may be this vault's own file: it is only replaced once the new one is
+    /// complete, and the caller reopens it afterwards.
+    pub fn rewrite(
+        &mut self,
+        output: &Path,
+        password: &str,
+        kdf: ScryptParams,
+        remove: &[String],
+        add: &[PathBuf],
+        job: &Job,
+    ) -> Result<CreateReport> {
+        let removed = |path: &str| remove.iter().any(|r| path == r || path.starts_with(&format!("{r}/")));
+        let mut entries = Vec::new();
+        let mut sources: Vec<Option<usize>> = Vec::new(); // index in this vault, None for folders
+        let mut taken = std::collections::HashSet::new();
+        for e in self.entries().to_vec() {
+            if removed(&e.path) {
+                continue;
+            }
+            taken.insert(e.path.split('/').next().unwrap_or("").to_lowercase());
+            let exec = !e.is_dir && self.is_executable(e.index);
+            entries.push(v2::ManifestEntry {
+                path: e.path.clone(),
+                kind: if e.is_dir { v2::EntryKind::Dir } else { v2::EntryKind::File },
+                size: if e.is_dir { 0 } else { e.size },
+                mtime: e.modified,
+                exec,
+            });
+            sources.push((!e.is_dir).then_some(e.index));
+        }
+        let added = if add.is_empty() { v2::Collected::default() } else { v2::collect_inputs_beside(add, taken)? };
+        if let Some(src) = added.sources.iter().flatten().find(|s| v2::same_file_pub(s, output)) {
+            return Err(Error::OutputIsInput(src.clone()));
+        }
+        let first_added = entries.len();
+        entries.extend(added.entries.iter().cloned());
+        if entries.is_empty() {
+            return Err(Error::EmptyInput);
+        }
+        let total: u64 = entries.iter().filter(|e| e.kind == v2::EntryKind::File).map(|e| e.size).sum();
+        let mut done = 0u64;
+        let output = v2::write_vault(&entries, output, password, kdf, job, |i, out, job| {
+            if i < first_added {
+                let index = sources[i].expect("file entries have a source");
+                done += self.copy_entry(index, out, job, done, total)?;
+                Ok(())
+            } else {
+                let src = added.sources[i - first_added].as_ref().expect("file entries have a source");
+                v2::copy_file(src, entries[i].size, out, job, &mut done, total)
+            }
+        })?;
+        Ok(CreateReport {
+            output,
+            files: entries.iter().filter(|e| e.kind == v2::EntryKind::File).count(),
+            folders: entries.iter().filter(|e| e.kind == v2::EntryKind::Dir).count(),
+            bytes: total,
+            encrypted: added.sources.iter().flatten().cloned().collect(),
+            skipped: added.skipped,
+        })
+    }
+
+    /// Decrypt and authenticate every file without writing anything. Returns the bytes checked.
+    pub fn verify(&mut self, job: &Job) -> Result<u64> {
+        let files: Vec<(usize, u64)> = self.entries().iter().filter(|e| !e.is_dir).map(|e| (e.index, e.size)).collect();
+        let total = files.iter().map(|f| f.1).sum();
+        let mut done = 0;
+        for (index, _) in files {
+            done += self.copy_entry(index, &mut std::io::sink(), job, done, total)?;
+        }
+        Ok(done)
+    }
+
+    /// One file's contents in memory (for previews), refused above `max` bytes.
+    pub fn read_entry(&mut self, index: usize, max: u64, job: &Job) -> Result<zeroize::Zeroizing<Vec<u8>>> {
+        let e = self.entry(index)?;
+        if e.is_dir {
+            return Err(Error::InvalidParams("entry is a folder"));
+        }
+        if e.size > max {
+            return Err(Error::InvalidParams("too large to preview"));
+        }
+        let mut buf = zeroize::Zeroizing::new(Vec::with_capacity(e.size as usize));
+        self.copy_entry(index, &mut *buf, job, 0, e.size)?;
+        Ok(buf)
     }
 
     fn entry(&self, index: usize) -> Result<EntryInfo> {

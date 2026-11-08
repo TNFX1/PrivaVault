@@ -378,3 +378,20 @@ body, .rail, .dropzone, .selection, .table-wrap, input, select { transition-prop
 
 .btn.small { min-height: 30px; padding: 4px 12px; font-size: 13px; }
 .check-now .hint { min-height: 0; }
+
+/* vault editing, previews */
+.vault-tools { margin: -4px 0 14px; flex-wrap: wrap; }
+.check { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 12px; cursor: pointer; }
+.check input { margin-top: 4px; accent-color: var(--accent); }
+.check span { display: grid; }
+.check small { color: var(--muted); }
+#pwPrompt form { display: grid; gap: 6px; min-width: min(420px, 80vw); }
+#pwPrompt input[type=password] { width: 100%; }
+#pwPrompt #ppNewFields { display: grid; gap: 6px; }
+.preview { width: min(900px, 90vw); }
+.preview-body { max-height: 70vh; overflow: auto; margin: 10px 0; border-radius: var(--radius-m); background: var(--bg); }
+.preview-body img { display: block; max-width: 100%; margin: 0 auto; }
+.preview-body pre { margin: 0; padding: 14px; font: 13px/1.5 var(--mono); white-space: pre-wrap; word-break: break-word; }
+.entry-name.previewable .label { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+td.act { white-space: nowrap; }
+td.act .btn + .btn { margin-left: 6px; }

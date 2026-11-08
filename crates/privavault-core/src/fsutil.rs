@@ -134,6 +134,38 @@ pub fn write_private_atomic(dest: &Path, data: &[u8]) -> Result<()> {
     Ok(())
 }
 
+/// Delete the files a vault was just made from, after the caller verified the vault.
+///
+/// Only regular files that are listed in `files` are deleted; then folders among `inputs` are
+/// removed bottom-up **only if they ended up empty** (anything skipped during encryption — a
+/// symlink, a file that couldn't be read — keeps its folder). Returns the paths left behind.
+/// Note: on SSDs and copy-on-write filesystems deleted data may stay recoverable.
+pub fn remove_originals(inputs: &[std::path::PathBuf], files: &[std::path::PathBuf]) -> Vec<std::path::PathBuf> {
+    let mut left = Vec::new();
+    for f in files {
+        if std::fs::symlink_metadata(f).map(|m| m.is_file()).unwrap_or(false) && std::fs::remove_file(f).is_err() {
+            left.push(f.clone());
+        }
+    }
+    fn prune(dir: &std::path::Path, left: &mut Vec<std::path::PathBuf>) {
+        let Ok(read) = std::fs::read_dir(dir) else { return };
+        for child in read.flatten() {
+            if child.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                prune(&child.path(), left);
+            }
+        }
+        if std::fs::remove_dir(dir).is_err() {
+            left.push(dir.to_path_buf());
+        }
+    }
+    for input in inputs {
+        if std::fs::symlink_metadata(input).map(|m| m.is_dir()).unwrap_or(false) {
+            prune(input, &mut left);
+        }
+    }
+    left
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

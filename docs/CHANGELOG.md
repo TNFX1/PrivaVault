@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Vaults
+- Add files to an open vault and remove files or folders from it. The vault is rewritten with a fresh
+  salt and nonce next to the old file and replaces it only when complete; 1.x vaults come out as v2.
+- Change a vault's password. The current password is asked for (and checked) before anything is
+  written, so a typo can't re-key a vault by accident.
+- Check vault: decrypts and authenticates every byte without writing anything.
+- Preview images and text files from the vault in memory, without saving them to disk.
+- Optionally delete the originals after locking — only after the new vault reopens and passes the
+  check; files that aren't in the vault and folders that aren't empty are kept.
+
 ## 2.2.1 — 2026-11-08
 
 (Includes everything prepared as 2.2.0, which was never published: GitHub's release downloads
