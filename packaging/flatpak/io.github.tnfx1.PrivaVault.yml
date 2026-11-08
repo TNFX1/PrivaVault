@@ -1,0 +1,46 @@
+# Flatpak / Flathub manifest. Build locally from this checkout:
+#   tools/release/flatpak.sh            (regenerates cargo-sources.json, builds, installs --user)
+# On Flathub the `dir` source below is replaced by the release tarball (see flathub submission).
+id: io.github.tnfx1.PrivaVault
+runtime: org.gnome.Platform
+runtime-version: '51'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: privavault
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  # No network, no filesystem access: files come and go through the XDG portals
+  # (file chooser, drag and drop, "open with").
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+modules:
+  - name: privavault
+    buildsystem: simple
+    build-options:
+      env:
+        CARGO_HOME: /run/build/privavault/cargo
+        CARGO_NET_OFFLINE: 'true'
+        # Flatpak app id instead of com.privavault.app: sets the Wayland app id, the D-Bus
+        # single-instance name and the WebView data folder to match the sandbox.
+        TAURI_CONFIG: '{"identifier": "io.github.tnfx1.PrivaVault"}'
+    build-commands:
+      - cargo --offline build --release -p privavault --features tauri/custom-protocol
+      - install -Dm755 target/release/privavault /app/bin/privavault
+      - install -Dm644 packaging/flatpak/io.github.tnfx1.PrivaVault.desktop /app/share/applications/io.github.tnfx1.PrivaVault.desktop
+      - install -Dm644 packaging/flatpak/io.github.tnfx1.PrivaVault.metainfo.xml /app/share/metainfo/io.github.tnfx1.PrivaVault.metainfo.xml
+      - install -Dm644 packaging/flatpak/io.github.tnfx1.PrivaVault.mime.xml /app/share/mime/packages/io.github.tnfx1.PrivaVault.xml
+      - |
+        for s in 32 64 128; do
+          install -Dm644 src-tauri/icons/${s}x${s}.png /app/share/icons/hicolor/${s}x${s}/apps/io.github.tnfx1.PrivaVault.png
+        done
+        install -Dm644 src-tauri/icons/128x128@2x.png /app/share/icons/hicolor/256x256/apps/io.github.tnfx1.PrivaVault.png
+        install -Dm644 src-tauri/icons/icon.png /app/share/icons/hicolor/512x512/apps/io.github.tnfx1.PrivaVault.png
+    sources:
+      - type: dir
+        path: ../..
+        skip: [target, .tools, graphify-out, .git]
+      - cargo-sources.json

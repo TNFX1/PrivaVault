@@ -70,6 +70,9 @@ pub struct Environment {
     pub session: String,
     /// e.g. "KDE", "GNOME" (Linux only).
     pub desktop: Option<String>,
+    /// Installed from an app store that updates it (Flatpak/Flathub): no in-app update check,
+    /// and the sandbox has no network access anyway.
+    pub store_managed: bool,
 }
 
 pub fn environment(env: impl Fn(&str) -> Option<String>) -> Environment {
@@ -83,7 +86,12 @@ pub fn environment(env: impl Fn(&str) -> Option<String>) -> Environment {
         Os::Windows => "windows".into(),
         Os::Macos => "macos".into(),
     };
-    Environment { os, session, desktop: env("XDG_CURRENT_DESKTOP").filter(|s| !s.is_empty()) }
+    Environment {
+        os,
+        session,
+        desktop: env("XDG_CURRENT_DESKTOP").filter(|s| !s.is_empty()),
+        store_managed: env("FLATPAK_ID").is_some_and(|s| !s.is_empty()),
+    }
 }
 
 /// Paths passed on the command line ("Open with PrivaVault", file-manager double-click,
@@ -264,6 +272,12 @@ mod tests {
             let e = environment(env(&[("DISPLAY", ":0")]));
             assert_eq!(e.session, "x11");
         }
+    }
+
+    #[test]
+    fn flatpak_is_store_managed() {
+        assert!(!environment(env(&[])).store_managed);
+        assert!(environment(env(&[("FLATPAK_ID", "io.github.tnfx1.PrivaVault")])).store_managed);
     }
 
     #[test]

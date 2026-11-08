@@ -162,8 +162,11 @@ function moveIndicator() {
   bar.style.transform = `translateY(${active.offsetTop + 6}px)`;
 }
 
+/** Flatpak: the store updates the app; no update check and no network permission. */
+const storeManaged = () => !!state.info?.environment?.store_managed;
+
 function renderNet() {
-  const on = !!state.settings?.check_updates;
+  const on = !!state.settings?.check_updates && !storeManaged();
   $("netStatus").classList.toggle("online", on);
   $("netText").textContent = on ? t("net.online") : t("net.offline");
 }
@@ -574,7 +577,7 @@ function renderAbout() {
 // ---------------------------------------------------------------- update check (opt-in)
 /** Ask the backend (Rust) for an update. `manual` = the user pressed "Check now" (consent). */
 async function checkUpdates(manual = false) {
-  if (!manual && !state.settings?.check_updates) return null;
+  if (storeManaged() || (!manual && !state.settings?.check_updates)) return null;
   try {
     const u = await invoke("check_update", { manual });
     state.update = u;
@@ -710,6 +713,8 @@ async function init() {
   wire();
   [state.settings, state.info] = await Promise.all([invoke("get_settings"), invoke("app_info")]);
   state.systemDark = state.info.system_dark;
+  for (const el of [document.querySelector('input[name="check_updates"]').closest("label"), $("btnCheckNow").parentElement])
+    el.hidden = storeManaged();
   applyTheme();
   applyI18n();
   fillSettings();

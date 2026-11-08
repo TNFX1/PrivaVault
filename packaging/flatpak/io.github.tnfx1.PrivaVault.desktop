@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=PrivaVault
+GenericName=File Encryption
+GenericName[tr]=Dosya Şifreleme
+Comment=Offline file encryption
+Comment[tr]=Çevrimdışı dosya şifreleme
+Exec=privavault %F
+Icon=io.github.tnfx1.PrivaVault
+Terminal=false
+Categories=Utility;Security;
+Keywords=encrypt;decrypt;vault;privacy;aes;şifrele;kasa;
+MimeType=application/x-privavault;
+StartupWMClass=io.github.tnfx1.PrivaVault
+StartupNotify=true

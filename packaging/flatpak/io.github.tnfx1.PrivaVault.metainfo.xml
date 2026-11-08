@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.tnfx1.PrivaVault</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>PrivaVault</name>
+  <summary>Lock files into password-protected vaults</summary>
+  <summary xml:lang="tr">Dosyaları parolalı kasalara kilitleyin</summary>
+  <developer id="io.github.tnfx1">
+    <name>TNFX1</name>
+  </developer>
+  <description>
+    <p>PrivaVault locks files and folders into a single encrypted vault file on your own computer.
+    It works fully offline: no account, no cloud, no telemetry.</p>
+    <ul>
+      <li>Unlocking lists the contents instantly; save one file, extract everything, or export a ZIP</li>
+      <li>scrypt key derivation and AES-256-GCM in authenticated chunks</li>
+      <li>Edited, truncated or damaged vaults are detected before any data is written</li>
+      <li>Nothing decrypted is written to temporary folders</li>
+      <li>Vaults lock themselves after a period of inactivity</li>
+      <li>Opens vaults made by PrivaVault 1.x</li>
+    </ul>
+    <p>There is no password recovery: without the password, nobody can open a vault.</p>
+    <p xml:lang="tr">PrivaVault, dosya ve klasörlerinizi kendi bilgisayarınızda tek bir şifreli kasa dosyasına
+    kilitler. Tamamen çevrimdışı çalışır: hesap, bulut ve telemetri yoktur.</p>
+  </description>
+  <launchable type="desktop-id">io.github.tnfx1.PrivaVault.desktop</launchable>
+  <url type="homepage">https://github.com/TNFX1/PrivaVault</url>
+  <url type="bugtracker">https://github.com/TNFX1/PrivaVault/issues</url>
+  <url type="vcs-browser">https://github.com/TNFX1/PrivaVault</url>
+  <provides>
+    <binary>privavault</binary>
+    <mediatype>application/x-privavault</mediatype>
+  </provides>
+  <categories>
+    <category>Utility</category>
+    <category>Security</category>
+  </categories>
+  <keywords>
+    <keyword>encryption</keyword>
+    <keyword>vault</keyword>
+    <keyword>privacy</keyword>
+    <keyword>password</keyword>
+  </keywords>
+  <branding>
+    <color type="primary" scheme_preference="light">#dbe4f5</color>
+    <color type="primary" scheme_preference="dark">#1a2a4f</color>
+  </branding>
+  <content_rating type="oars-1.1"/>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">720</display_length>
+  </requires>
+  <screenshots>
+    <screenshot type="default">
+      <caption>An unlocked vault</caption>
+      <image>https://raw.githubusercontent.com/TNFX1/PrivaVault/v2.2.1/docs/screenshots/vault-light-2.2.0.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Locking files and folders</caption>
+      <image>https://raw.githubusercontent.com/TNFX1/PrivaVault/v2.2.1/docs/screenshots/lock-light-2.2.0.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Dark theme</caption>
+      <image>https://raw.githubusercontent.com/TNFX1/PrivaVault/v2.2.1/docs/screenshots/vault-dark-2.2.0.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="2.2.1" date="2026-11-08">
+      <description><p>Packaging and release reliability improvements.</p></description>
+    </release>
+    <release version="2.1.0" date="2026-11-07">
+      <description>
+        <p>Sidebar protection summary and session activity, keyboard shortcuts, smoother motion, and the
+        system dark theme on Linux.</p>
+      </description>
+    </release>
+    <release version="2.0.0" date="2026-11-07">
+      <description><p>Rewritten in Rust with a stronger vault format; opens 1.x vaults.</p></description>
+    </release>
+  </releases>
+</component>

@@ -537,7 +537,7 @@ fn open_releases(app: AppHandle, url: Option<String>) -> CmdResult<()> {
 #[tauri::command]
 async fn check_update(app: AppHandle, manual: bool) -> CmdResult<Option<update::Available>> {
     let allowed = manual || app.state::<AppState>().settings.lock().unwrap().check_updates;
-    if !allowed {
+    if !allowed || platform::environment(|k| std::env::var(k).ok()).store_managed {
         return Ok(None);
     }
     match update::check(&app).await {
