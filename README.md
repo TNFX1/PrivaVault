@@ -19,7 +19,7 @@
   </p>
 </div>
 
-<p align="center"><img src="assets/preview-2.2.0.png" alt="An unlocked vault in PrivaVault's dark theme: folders and files with Save buttons, and a sidebar showing the protection settings, this session's activity and the auto-lock countdown" width="820"></p>
+<p align="center"><img src="assets/preview-2.3.0.png" alt="An unlocked vault in PrivaVault's dark theme: folders and files with Save buttons, and a sidebar showing the protection settings, this session's activity and the auto-lock countdown" width="820"></p>
 
 ## What it does
 
@@ -44,8 +44,8 @@ package). A modified package is refused before anything is installed.
 
 | Light | Dark |
 | --- | --- |
-| <img src="docs/screenshots/lock-light-2.2.0.png" alt="Lock files screen in the light theme with four items selected and a strong password" width="420"> | <img src="docs/screenshots/lock-dark-2.2.0.png" alt="Lock files screen in the dark theme" width="420"> |
-| <img src="docs/screenshots/vault-light-2.2.0.png" alt="Unlocked vault in the light theme" width="420"> | <img src="docs/screenshots/vault-dark-2.2.0.png" alt="Unlocked vault in the dark theme" width="420"> |
+| <img src="docs/screenshots/lock-light-2.3.0.png" alt="Lock files screen in the light theme with four items selected and a strong password" width="420"> | <img src="docs/screenshots/lock-dark-2.3.0.png" alt="Lock files screen in the dark theme" width="420"> |
+| <img src="docs/screenshots/vault-light-2.3.0.png" alt="Unlocked vault in the light theme" width="420"> | <img src="docs/screenshots/vault-dark-2.3.0.png" alt="Unlocked vault in the dark theme" width="420"> |
 
 The theme follows your system, or you can pick light or dark in Settings. The interface is available in
 English and Turkish. Keyboard shortcuts: <kbd>Ctrl</kbd>+<kbd>N</kbd> lock files, <kbd>Ctrl</kbd>+<kbd>O</kbd>
