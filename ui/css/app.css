@@ -385,10 +385,10 @@ body, .rail, .dropzone, .selection, .table-wrap, input, select { transition-prop
 .check input { margin-top: 4px; accent-color: var(--accent); }
 .check span { display: grid; }
 .check small { color: var(--muted); }
-#pwPrompt form { display: grid; gap: 6px; min-width: min(420px, 80vw); }
+#pwPrompt form { display: grid; gap: 6px; }
 #pwPrompt input[type=password] { width: 100%; }
 #pwPrompt #ppNewFields { display: grid; gap: 6px; }
-.preview { width: min(900px, 90vw); }
+.preview { width: min(900px, 92vw); max-width: none; }
 .preview-body { max-height: 70vh; overflow: auto; margin: 10px 0; border-radius: var(--radius-m); background: var(--bg); }
 .preview-body img { display: block; max-width: 100%; margin: 0 auto; }
 .preview-body pre { margin: 0; padding: 14px; font: 13px/1.5 var(--mono); white-space: pre-wrap; word-break: break-word; }
