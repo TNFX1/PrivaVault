@@ -79,19 +79,55 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2" --locked
+        # Pinned: the NSIS toolchain below matches what this CLI's bundler expects.
+        run: cargo install tauri-cli --version "=2.12.4" --locked
+      # The bundler downloads NSIS from github.com/tauri-apps/binary-releases, which kept answering
+      # HTTP 504 to GitHub's Windows runners (v2.2.0). Fetch it ourselves with retries, verify the
+      # same SHA-1 hashes the bundler checks, and cache it so later releases don't download it.
+      - name: Cache NSIS toolchain (Windows)
+        id: nsis-cache
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\tauri\NSIS
+          key: tauri-nsis-3.13-utils-0.5.3
+      - name: Fetch NSIS toolchain with retries (Windows)
+        if: runner.os == 'Windows' && steps.nsis-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          function Get-Verified($url, $out, $sha1) {
+            foreach ($i in 1..8) {
+              try {
+                Invoke-WebRequest $url -OutFile $out -MaximumRetryCount 5 -RetryIntervalSec 15
+                if ((Get-FileHash $out -Algorithm SHA1).Hash -eq $sha1) { return }
+                throw "SHA-1 mismatch for $url"
+              } catch { Write-Host "attempt $i failed: $_"; Start-Sleep 60 }
+            }
+            throw "could not download $url"
+          }
+          $tools = Join-Path $env:LOCALAPPDATA "tauri"
+          New-Item -ItemType Directory -Force $tools | Out-Null
+          Get-Verified "https://github.com/tauri-apps/binary-releases/releases/download/nsis-3.13/nsis-3.13.zip" "$env:RUNNER_TEMP\nsis.zip" "DB14F8AF2EA346B786C6AE19343F61AAF5E09B8E"
+          Expand-Archive "$env:RUNNER_TEMP\nsis.zip" -DestinationPath $tools -Force
+          Move-Item (Join-Path $tools "nsis-3.13") (Join-Path $tools "NSIS")
+          $plugins = Join-Path $tools "NSIS\Plugins\x86-unicode\additional"
+          New-Item -ItemType Directory -Force $plugins | Out-Null
+          Get-Verified "https://github.com/tauri-apps/nsis-tauri-utils/releases/download/nsis_tauri_utils-v0.5.3/nsis_tauri_utils.dll" (Join-Path $plugins "nsis_tauri_utils.dll") "75197FEE3C6A814FE035788D1C34EAD39349B860"
       - name: Build bundles
         working-directory: src-tauri
         shell: bash
         run: |
+          # Bundling downloads helper tools from GitHub; retry on transient HTTP errors
+          # (compiled code is reused, so a retry only repeats the bundling step).
+          retry() { for i in 1 2 3 4 5; do "$@" && return 0; echo "::warning::attempt $i failed, retrying in 60 s"; sleep 60; done; return 1; }
           if [ "$RUNNER_OS" = Linux ]; then
-            cargo tauri build --bundles deb,rpm
+            retry cargo tauri build --bundles deb,rpm
             # The AppImage is built from the deb tree but needs a visible desktop entry with
             # Categories (appimagetool rejects the hidden one deb/rpm use next to
             # com.privavault.app.desktop), so it gets its own config overlay.
-            cargo tauri build --bundles appimage --config ../packaging/linux/appimage.tauri.json
+            retry cargo tauri build --bundles appimage --config ../packaging/linux/appimage.tauri.json
           else
-            cargo tauri build --bundles ${{ matrix.bundles }}
+            retry cargo tauri build --bundles ${{ matrix.bundles }}
           fi
 
       - name: Collect artifacts (Linux)
