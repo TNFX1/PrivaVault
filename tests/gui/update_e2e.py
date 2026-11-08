@@ -69,9 +69,14 @@ def main():
                                 "url": f"http://127.0.0.1:{PORT}/{pkg.name}"}}}
     (srv / "latest.json").write_text(json.dumps(manifest))
 
-    handler = lambda *a, **k: http.server.SimpleHTTPRequestHandler(*a, directory=str(srv), **k)  # noqa: E731
-    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), handler)
-    httpd.RequestHandlerClass.log_message = lambda *a: None
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *a, **k):
+            super().__init__(*a, directory=str(srv), **k)
+
+        def log_message(self, *a):
+            pass
+
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     env = {"PRIVAVAULT_E2E_UPDATE_ENDPOINT": f"http://127.0.0.1:{PORT}/latest.json", "PRIVAVAULT_E2E_UPDATE_PUBKEY": pubkey}
 
@@ -98,7 +103,9 @@ def main():
         p, i = run_app(work, env)
         i.js('document.getElementById("btnCheckNow").click(); return 1;')
         i.wait('!document.getElementById("updateBanner").hidden', what="banner")
-        i.js('document.getElementById("updateInstall").click(); return 1;')
+        # Deferred click: a local install finishes in milliseconds and the app restarts itself,
+        # which would close the inspector before a synchronous click() call returns.
+        i.js('setTimeout(() => document.getElementById("updateInstall").click(), 50); return 1;')
         deadline = time.time() + 60
         while time.time() < deadline and not log.exists():
             time.sleep(0.3)

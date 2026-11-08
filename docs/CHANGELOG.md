@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.2.0 — 2026-11-08
+
+### Updates
+- One-click updates: when a new version is found (only if you turned on "Check for updates" or pressed
+  *Check now*), *Update now* downloads and installs it, then restarts PrivaVault.
+  - Windows installer, AppImage, `.deb` and `.rpm`: installed in place (Linux packages ask for your
+    password through the system dialog).
+  - Arch Linux / CachyOS package: installed with `pacman -U` after the system password prompt.
+  - Windows portable and unknown installs: *What's new* opens the release page as before.
+- Every update is checked against PrivaVault's signing key (minisign, bound to the version number)
+  before anything is installed; a modified or replayed package is refused and nothing changes.
+- New *Check now* button in Settings. Automatic checking stays off by default.
+
+### Releases
+- Release pages now carry only installable files plus `latest.json` (the signed update manifest); no
+  checksum text files or debug packages.
+
 ## 2.1.0 — 2026-11-07
 
 (Includes the fixes prepared as 2.0.1, which was never published because its Linux AppImage build failed.)

@@ -109,7 +109,11 @@ pub struct Progress {
 }
 
 /// Download (signature-verified by the plugin) and install. On success the caller restarts the app.
-pub async fn install(update: Update, method: Method, progress: impl Fn(Progress) + Send + 'static) -> Result<(), String> {
+pub async fn install(
+    update: Update,
+    method: Method,
+    progress: impl Fn(Progress) + Send + 'static,
+) -> Result<(), String> {
     let mut done = 0u64;
     let on_chunk = {
         let progress = &progress;
