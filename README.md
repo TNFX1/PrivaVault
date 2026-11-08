@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.png" alt="PrivaVault logo" width="112">
+  <img src="assets/logo.svg" alt="PrivaVault logo" width="112">
   <h1>PrivaVault</h1>
   <p><b>Offline file encryption for Linux and Windows.</b><br>
   Lock files and folders into a password-protected vault on your own computer.<br>
