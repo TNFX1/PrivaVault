@@ -1,6 +1,10 @@
 # Changelog
 
-## 2.2.0 — 2026-11-08
+## 2.2.1 — 2026-11-08
+
+(Includes everything prepared as 2.2.0, which was never published: GitHub's release downloads
+failed while the Windows installer was being built. The release workflow now retries those downloads
+and caches the installer toolchain.)
 
 ### Updates
 - One-click updates: when a new version is found (only if you turned on "Check for updates" or pressed
