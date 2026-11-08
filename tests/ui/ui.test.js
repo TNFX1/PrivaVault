@@ -89,3 +89,9 @@ test("version comparison for the opt-in update check", () => {
   assert.equal(newer("2.0", "2.0.1"), true);
   assert.equal(newer("1.4.0", "10.0.0"), true);
 });
+
+test("every element id in index.html is unique", () => {
+  const ids = [...read("index.html").matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+  const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
+  assert.deepEqual(dupes, [], `duplicate ids: ${dupes.join(", ")}`);
+});

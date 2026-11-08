@@ -812,7 +812,7 @@ function wire() {
     state.settings = await invoke("save_settings", { settings: { ...state.settings, onboarding_done: true } });
   });
   $("cqStay").addEventListener("click", () => $("confirmQuit").close());
-  $("btnAddFiles").addEventListener("click", addFiles);
+  $("btnVaultAdd").addEventListener("click", addFiles);
   $("btnVerify").addEventListener("click", verifyVault);
   $("btnChangePw").addEventListener("click", changePassword);
   $("pvClose").addEventListener("click", closePreview);
