@@ -217,3 +217,13 @@ jobs:
           rm -f *.sig *.txt
           ls -la
           gh release create "${GITHUB_REF_NAME}" --title "PrivaVault ${GITHUB_REF_NAME}" --notes-file ../notes.md --latest -- *
+          # v2.2.1: `gh` exited 0 but latest.json never reached the release (GitHub outage), which
+          # silently breaks in-app updates. Check every file and re-upload what is missing.
+          for attempt in 1 2 3 4 5; do
+            missing=$(comm -23 <(ls | sort) <(gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets[] | select(.state == "uploaded") | .name' | sort))
+            [ -z "$missing" ] && { echo "all $(ls | wc -l) files on the release"; exit 0; }
+            echo "::warning::missing on the release: $missing (attempt $attempt)"
+            gh release upload "${GITHUB_REF_NAME}" --clobber $missing || true
+            sleep 30
+          done
+          echo "::error::files still missing from the release: $missing"; exit 1
