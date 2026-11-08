@@ -2,10 +2,12 @@
 """Regenerate the README screenshots from the real app (debug build), light and dark.
 
 Usage:  cargo build -p privavault && python3 tests/gui/screenshots.py
-Writes docs/screenshots/{lock,vault}-{light,dark}.png and assets/preview.png. Only the app's own page
+Writes docs/screenshots/{lock,vault}-{light,dark}-<version>.png and assets/preview-<version>.png and
+points README.md at them. Only the app's own page
 is captured (WebKit inspector), never the desktop. Sample files are random bytes in a temp folder.
 """
 import json
+import re
 import os
 import shutil
 import sys
@@ -18,6 +20,7 @@ from e2e import BIN, ROOT, App, shot  # noqa: E402
 
 PW = "correct horse battery staple ocean"
 SHOTS = ROOT / "docs" / "screenshots"
+VERSION = re.search(r'^version = "(.+)"', (ROOT / "Cargo.toml").read_text(), re.M).group(1)
 
 
 def theme(app, name, back_to):
@@ -69,9 +72,15 @@ def main():
         theme(app, "light", "open")
         shot(app, tmp, "vault-light")
 
+        # File names carry the version so GitHub and browsers never show a cached older picture.
+        for old in [*SHOTS.glob("*.png"), *ROOT.glob("assets/preview*.png")]:
+            old.unlink()
         for name in ("lock-light", "lock-dark", "vault-light", "vault-dark"):
-            shutil.copy(tmp / f"{name}.png", SHOTS / f"{name}.png")
-        shutil.copy(tmp / "vault-dark.png", ROOT / "assets" / "preview.png")
+            shutil.copy(tmp / f"{name}.png", SHOTS / f"{name}-{VERSION}.png")
+        shutil.copy(tmp / "vault-dark.png", ROOT / "assets" / f"preview-{VERSION}.png")
+        readme = ROOT / "README.md"
+        readme.write_text(re.sub(r"((?:docs/screenshots/[a-z]+-[a-z]+|assets/preview))(?:-[0-9.]+)?\.png",
+                                 rf"\1-{VERSION}.png", readme.read_text()))
         print("wrote", ", ".join(sorted(p.name for p in tmp.iterdir())))
     finally:
         app.close()
