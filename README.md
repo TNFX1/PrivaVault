@@ -24,10 +24,15 @@
 ## What it does
 
 **Lock files.** Pick files and folders, or drag them onto the window. Choose a password, and PrivaVault
-writes everything into one encrypted `.pvault` file. Your originals stay where they are.
+writes everything into one encrypted `.pvault` file. Your originals stay where they are unless you ask PrivaVault to delete them.
 
 **Open a vault.** Unlocking shows the contents straight away, without decrypting everything first. Save
-a single file, extract the whole vault into a new folder, or export a plain ZIP.
+a single file, extract the whole vault into a new folder, or export a plain ZIP. Images and text files
+can be previewed in memory without being written to disk.
+
+**Edit a vault.** Add files to an open vault or remove them, and change its password. The vault is
+rewritten next to the old file and replaces it only when complete. *Check vault* decrypts and
+authenticates every byte without writing anything.
 
 **See how you're protected.** The sidebar sums up the cipher, the password-protection strength and the
 auto-lock time, and lists what you locked, opened and extracted in this session. That list is kept in
@@ -124,9 +129,9 @@ On Linux you need the WebKitGTK 4.1 development files (Arch: `webkit2gtk-4.1`; D
 ### Tests
 
 ```bash
-cargo test --workspace           # 42 tests: crypto, both vault formats, tampering, paths, settings
+cargo test --workspace           # 49 tests: crypto, both vault formats, tampering, paths, settings
 node --test tests/ui/ui.test.js             # UI: translations, CSP rules, XSS regression
-python3 tests/gui/e2e.py         # 40 end-to-end checks against the real app window (Linux desktop)
+python3 tests/gui/e2e.py         # 47 end-to-end checks against the real app window (Linux desktop)
 ```
 
 `tests/gui/update_e2e.py` checks one-click updates against a local fake release (a tampered package
@@ -141,8 +146,9 @@ The v1 compatibility tests use vaults produced by the original 1.4.0 JavaScript 
 crates/privavault-core   vault formats, encryption, safe extraction (Rust library, no GUI)
 src-tauri                desktop app: commands, settings, platform integration (Tauri 2)
 ui                       interface: HTML, CSS, JS, bundled font (no network, strict CSP)
-packaging                Linux desktop entry, MIME type, AppStream metadata, Arch PKGBUILD
+packaging                Linux desktop entry, MIME type, AppStream metadata, Arch PKGBUILD, AUR, Flatpak
 tests                    UI and end-to-end GUI tests
+tools                    v1 test fixtures, release helpers (updater manifest, AUR, Flatpak)
 docs                     architecture, security audit, setup and build guides
 ```
 
@@ -158,7 +164,7 @@ No. There is no backdoor and no recovery key. Keep the password in a password ma
 No. 2.0 writes a stronger format, and it opens both.
 
 **Does locking delete my original files?**
-No. Delete them yourself once the vault is stored safely. On SSDs and copy-on-write filesystems such as
+Only if you tick *Delete the originals after locking*, and only after the new vault reopens and passes the check. On SSDs and copy-on-write filesystems such as
 Btrfs, deleting a file does not erase it from the disk. Full-disk encryption covers that case.
 
 **Is there a size limit?**
@@ -175,10 +181,13 @@ PrivaVault, dosya ve klasörlerinizi kendi bilgisayarınızda parolayla korunan 
 Wayland dahil) ile Windows'ta çalışır. Arayüz Türkçedir; tema sisteme uyar ya da Ayarlar'dan açık veya
 koyu seçilebilir.
 
-* **Dosyaları kilitle:** Dosya ve klasörleri seçin ya da pencereye sürükleyin, parola belirleyin. Orijinal
-  dosyalarınıza dokunulmaz.
+* **Dosyaları kilitle:** Dosya ve klasörleri seçin ya da pencereye sürükleyin, parola belirleyin. Siz
+  istemedikçe orijinal dosyalarınıza dokunulmaz.
 * **Kasa aç:** İçerik anında listelenir. Tek bir dosyayı kaydedebilir, hepsini yeni bir klasöre çıkarabilir
-  veya ZIP olarak kaydedebilirsiniz.
+  veya ZIP olarak kaydedebilirsiniz. Resim ve metin dosyaları diske yazılmadan önizlenebilir.
+* **Kasayı düzenle:** Açık kasaya dosya ekleyin veya çıkarın, parolasını değiştirin. *Kasayı denetle* her
+  baytı hiçbir şey yazmadan doğrular. İsterseniz kilitledikten sonra orijinaller silinir (yalnızca yeni
+  kasa açılıp denetimden geçtikten sonra).
 * **Koruma:** scrypt (128–512 MiB) ve kimliği doğrulanmış 64 KiB parçalarda AES-256-GCM. Her parça diske
   yazılmadan önce doğrulanır.
 * **Parola kurtarma yoktur.** Parolayı unutursanız kasa hiç kimse tarafından açılamaz.
