@@ -15,8 +15,6 @@
         "title": "PrivaVault",
         "width": 1040,
         "height": 760,
-        "minWidth": 720,
-        "minHeight": 520,
         "center": true,
         "dragDropEnabled": true
       }
