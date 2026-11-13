@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.1 — 2026-11-13
+
+- The window no longer has a minimum size, so it fits small tiles in tiling window managers
+  such as Hyprland and Sway instead of being cropped.
+
 ## 2.3.0 — 2026-11-08
 
 ### Vaults
