@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 — 2026-11-14
 
 - Command line on Linux: `privavault lock|open|list|check`, using the same program as the app.
   The password is read without echo, or from stdin for scripts.

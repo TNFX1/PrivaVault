@@ -1,6 +1,6 @@
 # PrivaVault
 
-Offline file encryption for Linux and Windows. Built with Tauri 2 and Rust (MIT license). Current release: 2.3.1.
+Offline file encryption for Linux and Windows. Built with Tauri 2 and Rust (MIT license). Current release: 2.4.0.
 
 ## Layout
 
