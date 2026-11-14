@@ -34,3 +34,7 @@ tempfile = "3.27.0"
 # light/dark preference from the XDG portal (see platform::appearance).
 [target.'cfg(target_os = "linux")'.dependencies]
 zbus = "5"
+
+# Already in the tree; turns terminal echo off for the command-line password prompt (cli.rs).
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

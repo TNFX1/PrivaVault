@@ -1,0 +1,37 @@
+name: Fuzz
+
+# Coverage-guided fuzzing of the vault parsers (fuzz/). Weekly and on demand; the quick
+# stable-Rust version runs with every test run (crates/privavault-core/tests/robustness.rs).
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    name: Fuzz ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [open_vault, entry_name]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: Seed corpus
+        run: |
+          mkdir -p fuzz/corpus/${{ matrix.target }}
+          if [ "${{ matrix.target }}" = open_vault ]; then cp crates/privavault-core/tests/fixtures/*.pvault fuzz/corpus/open_vault/; fi
+      - name: Fuzz for 10 minutes
+        run: cargo fuzz run ${{ matrix.target }} -- -max_total_time=600 -rss_limit_mb=2048 -timeout=20
+      - name: Keep the crashing input
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crash-${{ matrix.target }}
+          path: fuzz/artifacts/

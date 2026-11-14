@@ -102,6 +102,18 @@ are never deleted.
 On Linux, `.pvault` files open from your file manager, and a second double-click goes to the window
 that's already running. File dialogs are your desktop's own (through the XDG portal).
 
+### Command line (Linux)
+
+The same `privavault` program works from a terminal. The password is asked without echo (or read
+from the first line of stdin, for scripts):
+
+```bash
+privavault lock notes/ photos/ -o private.pvault   # --strength high|maximum, --force to replace
+privavault list private.pvault
+privavault check private.pvault                    # decrypt and verify everything, write nothing
+privavault open private.pvault -d ~/Desktop        # extracts into a new folder, never overwrites
+```
+
 ## Performance
 
 Measured on the development machine (x86-64, NVMe, release build), including disk writes and `fsync`:
@@ -129,7 +141,7 @@ On Linux you need the WebKitGTK 4.1 development files (Arch: `webkit2gtk-4.1`; D
 ### Tests
 
 ```bash
-cargo test --workspace           # 49 tests: crypto, both vault formats, tampering, paths, settings
+cargo test --workspace           # 57 tests: crypto, both vault formats, tampering, fuzz-style robustness, paths, CLI
 node --test tests/ui/ui.test.js             # UI: translations, CSP rules, XSS regression
 python3 tests/gui/e2e.py         # 47 end-to-end checks against the real app window (Linux desktop)
 ```
@@ -138,7 +150,8 @@ python3 tests/gui/e2e.py         # 47 end-to-end checks against the real app win
 must be refused), and `tests/gui/screenshots.py` regenerates the screenshots in this README.
 
 The v1 compatibility tests use vaults produced by the original 1.4.0 JavaScript code
-([tools/v1-fixtures](tools/v1-fixtures)). CI runs the Rust and UI tests on Ubuntu and Windows.
+([tools/v1-fixtures](tools/v1-fixtures)). CI runs the Rust and UI tests on Ubuntu and Windows, and fuzzes
+the vault parsers weekly ([fuzz](fuzz), `cargo +nightly fuzz run open_vault`).
 
 ## Project layout
 
@@ -148,6 +161,7 @@ src-tauri                desktop app: commands, settings, platform integration (
 ui                       interface: HTML, CSS, JS, bundled font (no network, strict CSP)
 packaging                Linux desktop entry, MIME type, AppStream metadata, Arch PKGBUILD, AUR, Flatpak
 tests                    UI and end-to-end GUI tests
+fuzz                     coverage-guided fuzz targets for the vault parsers (cargo-fuzz)
 tools                    v1 test fixtures, release helpers (updater manifest, AUR, Flatpak)
 docs                     architecture, security audit, setup and build guides
 ```
@@ -196,6 +210,7 @@ koyu seçilebilir.
 * **Tek tıkla güncelleme:** Güncelleme denetimi varsayılan olarak kapalıdır. Yeni sürüm bulunduğunda
   *Şimdi güncelle* paketi indirir, PrivaVault imzasıyla doğrular ve kurar.
 * 1.x ile oluşturulan kasalar 2.0'da açılır.
+* **Komut satırı (Linux):** `privavault lock`, `open`, `list`, `check` (ayrıntı: `privavault help`).
 
 Kurulum için yukarıdaki [Install](#install) tablosuna, ayrıntılar için `docs/` klasörüne bakın.
 

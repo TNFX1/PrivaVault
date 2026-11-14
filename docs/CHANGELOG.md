@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Command line on Linux: `privavault lock|open|list|check`, using the same program as the app.
+  The password is read without echo, or from stdin for scripts.
+- Fuzzing: stable robustness tests run with `cargo test` (mutated, truncated and random vaults,
+  hostile entry names), plus cargo-fuzz targets in `fuzz/` run weekly in CI.
+
 ## 2.3.1 — 2026-11-13
 
 - The window no longer has a minimum size, so it fits small tiles in tiling window managers

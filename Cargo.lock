@@ -2903,6 +2903,7 @@ name = "privavault"
 version = "2.3.1"
 dependencies = [
  "getrandom 0.3.4",
+ "libc",
  "privavault-core",
  "serde",
  "serde_json",

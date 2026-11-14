@@ -1,0 +1,30 @@
+[package]
+name = "privavault-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+privavault-core = { path = "../crates/privavault-core" }
+tempfile = "3"
+
+# Not part of the main workspace: needs nightly and cargo-fuzz.
+[workspace]
+
+[[bin]]
+name = "open_vault"
+path = "fuzz_targets/open_vault.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "entry_name"
+path = "fuzz_targets/entry_name.rs"
+test = false
+doc = false
+bench = false

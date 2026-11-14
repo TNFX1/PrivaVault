@@ -9,6 +9,8 @@
 //! * The opened vault (and its derived key) is held only until the user locks it, the idle
 //!   auto-lock fires, or the app exits.
 
+#[cfg(unix)]
+pub mod cli;
 mod platform;
 mod settings;
 mod update;

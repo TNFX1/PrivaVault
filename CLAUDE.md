@@ -9,6 +9,8 @@ Offline file encryption for Linux and Windows. Built with Tauri 2 and Rust (MIT 
   - v1 vaults (from the Electron 1.x app) can only be read; they are never written.
   - Tests include real 1.4.0 fixtures.
 - `src-tauri/`: Tauri commands. Output paths come only from dialogs opened on the Rust side.
+  - `src-tauri/src/cli.rs`: terminal commands (`privavault lock|open|list|check`), Unix only, run from `main.rs` before the window starts.
+- `fuzz/`: cargo-fuzz targets (`open_vault`, `entry_name`), outside the workspace; weekly CI job in `.github/workflows/fuzz.yml`. Locally without nightly: build with `RUSTC_BOOTSTRAP=1` and the sancov `RUSTFLAGS` cargo-fuzz uses.
 - `ui/`: static HTML, CSS and JS. Strict CSP; no `innerHTML`. English and Turkish.
 - `packaging/`: desktop file (`StartupWMClass=com.privavault.app`), MIME type, metainfo, Arch PKGBUILD, AUR package, Flatpak manifest.
 - `tools/release/`: `make_manifest.py` (updater `latest.json`), `aur.sh`, `flatpak.sh`
