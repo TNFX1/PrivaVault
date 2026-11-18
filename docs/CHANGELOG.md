@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.5.0 — 2026-11-18
 
 - Notes: write a note into a new or open vault, and edit text files in an open vault. The text stays
   in memory and is stored encrypted as a top-level `.txt` file (no format change).
