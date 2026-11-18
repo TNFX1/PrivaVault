@@ -9,6 +9,8 @@
 pub mod error;
 pub mod fsutil;
 pub mod kdf;
+pub mod notes;
+pub mod parts;
 pub mod paths;
 pub mod v1;
 pub mod v2;
@@ -16,6 +18,8 @@ pub mod v2;
 pub use error::{Error, Result};
 pub use fsutil::remove_originals;
 pub use kdf::{ScryptParams, Strength};
+pub use notes::Note;
+pub use parts::{part_paths, split_vault};
 pub use v2::CreateReport;
 
 use error::IoContext;
@@ -95,6 +99,9 @@ pub enum Format {
 
 /// Identify a vault's format from its header without a password.
 pub fn detect_format(path: &Path) -> Result<Format> {
+    // Any part of a split vault: the header is at the start of `.001`
+    let first = parts::part_paths(path).map(|p| p[0].clone());
+    let path = first.as_deref().unwrap_or(path);
     let mut f = File::open(path).ctx(|| format!("cannot open {}", path.display()))?;
     let mut magic = [0u8; 8];
     let n = f.read(&mut magic).ctx(|| format!("cannot read {}", path.display()))?;
@@ -124,6 +131,62 @@ pub fn create_vault(
     v2::create(inputs, output, password, kdf, job)
 }
 
+/// [`create_vault`] plus `notes`, stored as top-level `.txt` files. `inputs` may be empty when
+/// there is at least one note.
+pub fn create_vault_with_notes(
+    inputs: &[PathBuf],
+    notes: &[Note],
+    output: &Path,
+    password: &str,
+    kdf: ScryptParams,
+    job: &Job,
+) -> Result<CreateReport> {
+    if notes.is_empty() {
+        return v2::create(inputs, output, password, kdf, job);
+    }
+    if password.is_empty() {
+        return Err(Error::InvalidParams("empty password"));
+    }
+    let collected = if inputs.is_empty() { v2::Collected::default() } else { v2::collect_inputs(inputs)? };
+    if let Some(src) = collected.sources.iter().flatten().find(|s| v2::same_file_pub(s, output)) {
+        return Err(Error::OutputIsInput(src.clone()));
+    }
+    let mut taken = top_names(&collected.entries);
+    let first_note = collected.entries.len();
+    let mut entries = collected.entries.clone();
+    entries.extend(notes::note_entries(notes, &mut taken));
+    let total: u64 = entries.iter().filter(|e| e.kind == v2::EntryKind::File).map(|e| e.size).sum();
+    let mut done = 0u64;
+    let output = v2::write_vault(&entries, output, password, kdf, job, |i, out, job| {
+        if i < first_note {
+            let src = collected.sources[i].as_ref().expect("file entries have a source");
+            v2::copy_file(src, entries[i].size, out, job, &mut done, total)
+        } else {
+            write_note(&notes[i - first_note], out, job, &mut done, total)
+        }
+    })?;
+    Ok(CreateReport {
+        output,
+        files: entries.iter().filter(|e| e.kind == v2::EntryKind::File).count(),
+        folders: entries.iter().filter(|e| e.kind == v2::EntryKind::Dir).count(),
+        bytes: total,
+        encrypted: collected.sources.iter().flatten().cloned().collect(),
+        skipped: collected.skipped,
+    })
+}
+
+/// Lower-cased first path components, for keeping new top-level names apart.
+fn top_names(entries: &[v2::ManifestEntry]) -> std::collections::HashSet<String> {
+    entries.iter().map(|e| e.path.split('/').next().unwrap_or("").to_lowercase()).collect()
+}
+
+fn write_note(note: &Note, out: &mut dyn std::io::Write, job: &Job, done: &mut u64, total: u64) -> Result<()> {
+    out.write_all(note.text.as_bytes()).ctx(|| "cannot write vault".into())?;
+    *done += note.text.len() as u64;
+    job.report(Phase::Encrypting, *done, total);
+    Ok(())
+}
+
 pub enum Vault {
     V1(v1::V1Vault),
     V2(v2::V2Vault),
@@ -145,11 +208,22 @@ impl Vault {
             return Err(Error::InvalidParams("empty password"));
         }
         let format = detect_format(path)?;
-        let file = File::open(path).ctx(|| format!("cannot open {}", path.display()))?;
         Ok(match format {
-            Format::V1 => Vault::V1(v1::V1Vault::open(file, password, job)?),
-            Format::V2 => Vault::V2(v2::V2Vault::open(file, password, job)?),
+            Format::V1 => {
+                let file = File::open(path).ctx(|| format!("cannot open {}", path.display()))?;
+                Vault::V1(v1::V1Vault::open(file, password, job)?)
+            }
+            // A part of a split vault opens the whole set
+            Format::V2 => Vault::V2(v2::V2Vault::open(parts::VaultFile::open(path)?, password, job)?),
         })
+    }
+
+    /// Number of files the vault is stored in: more than 1 for a split vault.
+    pub fn part_count(&self) -> usize {
+        match self {
+            Vault::V1(_) => 1,
+            Vault::V2(v) => v.part_count(),
+        }
     }
 
     pub fn format(&self) -> Format {
@@ -205,6 +279,26 @@ impl Vault {
         add: &[PathBuf],
         job: &Job,
     ) -> Result<CreateReport> {
+        self.rewrite_with_notes(output, password, kdf, remove, add, &[], job)
+    }
+
+    /// [`Vault::rewrite`] plus `notes` as top-level `.txt` files. To save an edited note, pass its
+    /// current path in `remove` and the note under the same name.
+    #[allow(clippy::too_many_arguments)]
+    pub fn rewrite_with_notes(
+        &mut self,
+        output: &Path,
+        password: &str,
+        kdf: ScryptParams,
+        remove: &[String],
+        add: &[PathBuf],
+        notes: &[Note],
+        job: &Job,
+    ) -> Result<CreateReport> {
+        if self.part_count() > 1 {
+            // Writing back would put one whole vault over `.001` and leave the old parts behind
+            return Err(Error::InvalidParams("split vaults cannot be edited"));
+        }
         let removed = |path: &str| remove.iter().any(|r| path == r || path.starts_with(&format!("{r}/")));
         let mut entries = Vec::new();
         let mut sources: Vec<Option<usize>> = Vec::new(); // index in this vault, None for folders
@@ -230,6 +324,9 @@ impl Vault {
         }
         let first_added = entries.len();
         entries.extend(added.entries.iter().cloned());
+        let first_note = entries.len();
+        let mut taken = top_names(&entries);
+        entries.extend(notes::note_entries(notes, &mut taken));
         if entries.is_empty() {
             return Err(Error::EmptyInput);
         }
@@ -240,9 +337,11 @@ impl Vault {
                 let index = sources[i].expect("file entries have a source");
                 done += self.copy_entry(index, out, job, done, total)?;
                 Ok(())
-            } else {
+            } else if i < first_note {
                 let src = added.sources[i - first_added].as_ref().expect("file entries have a source");
                 v2::copy_file(src, entries[i].size, out, job, &mut done, total)
+            } else {
+                write_note(&notes[i - first_note], out, job, &mut done, total)
             }
         })?;
         Ok(CreateReport {

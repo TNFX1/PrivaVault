@@ -15,8 +15,8 @@ mod platform;
 mod settings;
 mod update;
 
-use privavault_core::{create_vault, detect_format, EntryInfo, Format, Job, Progress, Vault};
-use serde::Serialize;
+use privavault_core::{detect_format, EntryInfo, Format, Job, Progress, Vault};
+use serde::{Deserialize, Serialize};
 use settings::{Settings, Theme};
 use std::cell::Cell;
 use std::path::{Path, PathBuf};
@@ -335,6 +335,32 @@ struct EncryptResult {
     skipped: Vec<PathBuf>,
     originals_deleted: bool,
     left_behind: Vec<PathBuf>,
+    /// Files the vault was written as: 1, or the number of `.001`, `.002`… parts.
+    parts: usize,
+}
+
+/// A note typed in the app. Converted straight into zeroised memory.
+#[derive(Deserialize)]
+struct NoteIn {
+    name: String,
+    text: String,
+}
+
+fn into_notes(notes: Option<Vec<NoteIn>>) -> Vec<privavault_core::Note> {
+    notes
+        .unwrap_or_default()
+        .into_iter()
+        .map(|n| privavault_core::Note { name: n.name, text: Zeroizing::new(n.text) })
+        .collect()
+}
+
+/// Size on disk of a vault, all parts together if it is split.
+fn vault_size(path: &Path) -> u64 {
+    privavault_core::part_paths(path)
+        .unwrap_or_else(|| vec![path.to_path_buf()])
+        .iter()
+        .map(|p| std::fs::metadata(p).map(|m| m.len()).unwrap_or(0))
+        .sum()
 }
 
 #[tauri::command]
@@ -344,9 +370,12 @@ async fn encrypt(
     password: String,
     suggested_name: String,
     delete_originals: Option<bool>,
+    notes: Option<Vec<NoteIn>>,
+    part_size: Option<u64>,
 ) -> CmdResult<Option<EncryptResult>> {
     let password = Zeroizing::new(password);
-    if paths.is_empty() {
+    let notes = into_notes(notes);
+    if paths.is_empty() && notes.is_empty() {
         return Err(err("empty_input", "nothing selected"));
     }
     let (ext, kdf) = {
@@ -357,22 +386,27 @@ async fn encrypt(
     let name = safe_file_name(&suggested_name, "vault");
     let name = if name.to_ascii_lowercase().ends_with(&format!(".{ext}")) { name } else { format!("{name}.{ext}") };
     let w = window(&app)?;
-    let dir = paths[0].parent().map(Path::to_path_buf);
+    let dir = paths.first().and_then(|p| p.parent()).map(Path::to_path_buf);
     run_job(&app, move |app, job| {
         let Some(out) = ask_save_path(app, &w, &name, dir, Some(("PrivaVault", ext.as_str())))? else {
             return Ok(None);
         };
-        let rep = create_vault(&paths, &out, &password, kdf, job)?;
-        *app.state::<AppState>().last_output.lock().unwrap() = Some(rep.output.clone());
+        let rep = privavault_core::create_vault_with_notes(&paths, &notes, &out, &password, kdf, job)?;
         // Originals go only after the new vault reopens with this password and every byte checks out.
-        let left = if delete_originals.unwrap_or(false) {
+        let delete = delete_originals.unwrap_or(false);
+        if delete {
             Vault::open(&rep.output, &password, job)?.verify(job)?;
-            Some(privavault_core::remove_originals(&paths, &rep.encrypted))
-        } else {
-            None
+        }
+        // Splitting copies bytes unchanged, so the check above still holds for the parts.
+        let parts = match part_size {
+            Some(size) => privavault_core::split_vault(&rep.output, size, job)?,
+            None => vec![rep.output.clone()],
         };
+        *app.state::<AppState>().last_output.lock().unwrap() = Some(parts[0].clone());
+        let left = delete.then(|| privavault_core::remove_originals(&paths, &rep.encrypted));
         Ok(Some(EncryptResult {
-            output: rep.output,
+            parts: parts.len(),
+            output: parts[0].clone(),
             files: rep.files,
             folders: rep.folders,
             bytes: rep.bytes,
@@ -396,6 +430,8 @@ struct OpenResult {
     format: Format,
     kdf: String,
     entries: Vec<EntryInfo>,
+    /// More than 1 for a split vault, which is read-only.
+    parts: usize,
 }
 
 #[tauri::command]
@@ -407,7 +443,8 @@ async fn open_vault(app: AppHandle, path: PathBuf, password: String) -> CmdResul
         let vault = Vault::open(&path, &password, job)?;
         let res = OpenResult {
             name: privavault_core::paths::display_name(&path),
-            size: std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0),
+            size: vault_size(&path),
+            parts: vault.part_count(),
             format: vault.format(),
             kdf: vault.kdf_description(),
             entries: vault.entries().to_vec(),
@@ -439,8 +476,10 @@ async fn edit_vault(
     new_password: Option<String>,
     remove: Vec<String>,
     add: Vec<PathBuf>,
+    notes: Option<Vec<NoteIn>>,
 ) -> CmdResult<OpenResult> {
     let password = Zeroizing::new(password);
+    let notes = into_notes(notes);
     let new_password = new_password.map(Zeroizing::new);
     let kdf = app.state::<AppState>().settings.lock().unwrap().strength.params();
     run_job(&app, move |app, job| {
@@ -454,13 +493,14 @@ async fn edit_vault(
             .ok_or_else(|| err("locked", "no vault is open"))?;
         let mut source = Vault::open(&path, &password, job)?; // wrong password → WrongPassword, nothing written
         let final_pw: &str = new_password.as_deref().map(|p| p.as_str()).unwrap_or(&password);
-        source.rewrite(&path, final_pw, kdf, &remove, &add, job)?;
+        source.rewrite_with_notes(&path, final_pw, kdf, &remove, &add, &notes, job)?;
         drop(source);
         st.session.lock().unwrap().take();
         let vault = Vault::open(&path, final_pw, job)?;
         let res = OpenResult {
             name: privavault_core::paths::display_name(&path),
-            size: std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0),
+            size: vault_size(&path),
+            parts: vault.part_count(),
             format: vault.format(),
             kdf: vault.kdf_description(),
             entries: vault.entries().to_vec(),

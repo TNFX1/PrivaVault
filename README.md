@@ -34,6 +34,17 @@ can be previewed in memory without being written to disk.
 rewritten next to the old file and replaces it only when complete. *Check vault* decrypts and
 authenticates every byte without writing anything.
 
+**Write notes.** Type a note (recovery codes, account details, anything short) straight into a new
+or open vault. It is kept in memory only and stored encrypted as a `.txt` file, so any PrivaVault
+version extracts it as an ordinary text file. Text files in an open vault can be edited the same way.
+
+**Split big vaults.** Save a vault as `name.pvault.001`, `.002`, … of 25 MB to 4 GB for e-mail, upload
+or FAT32 limits. Open any part to open the whole vault. The parts are a plain byte split of a normal
+vault (`cat name.pvault.0* > name.pvault` joins them); split vaults are read-only.
+
+**Right-click to lock.** *Lock with PrivaVault* in Dolphin (KDE), GNOME Files (with `nautilus-python`)
+and Windows Explorer opens the app with the selected files and folders.
+
 **See how you're protected.** The sidebar sums up the cipher, the password-protection strength and the
 auto-lock time, and lists what you locked, opened and extracted in this session. That list is kept in
 memory only and forgotten when you quit.
@@ -109,6 +120,7 @@ from the first line of stdin, for scripts):
 
 ```bash
 privavault lock notes/ photos/ -o private.pvault   # --strength high|maximum, --force to replace
+privavault lock videos/ --split 2G                 # videos.pvault.001, .002, …
 privavault list private.pvault
 privavault check private.pvault                    # decrypt and verify everything, write nothing
 privavault open private.pvault -d ~/Desktop        # extracts into a new folder, never overwrites
@@ -141,9 +153,9 @@ On Linux you need the WebKitGTK 4.1 development files (Arch: `webkit2gtk-4.1`; D
 ### Tests
 
 ```bash
-cargo test --workspace           # 57 tests: crypto, both vault formats, tampering, fuzz-style robustness, paths, CLI
+cargo test --workspace           # 67 tests: crypto, both vault formats, tampering, fuzz-style robustness, notes, split vaults, paths, CLI
 node --test tests/ui/ui.test.js             # UI: translations, CSP rules, XSS regression
-python3 tests/gui/e2e.py         # 47 end-to-end checks against the real app window (Linux desktop)
+python3 tests/gui/e2e.py         # 56 end-to-end checks against the real app window (Linux desktop)
 ```
 
 `tests/gui/update_e2e.py` checks one-click updates against a local fake release (a tampered package
@@ -202,6 +214,14 @@ koyu seçilebilir.
 * **Kasayı düzenle:** Açık kasaya dosya ekleyin veya çıkarın, parolasını değiştirin. *Kasayı denetle* her
   baytı hiçbir şey yazmadan doğrular. İsterseniz kilitledikten sonra orijinaller silinir (yalnızca yeni
   kasa açılıp denetimden geçtikten sonra).
+* **Notlar:** Yeni ya da açık bir kasaya doğrudan not yazın (kurtarma kodları, hesap bilgileri…). Not
+  yalnızca bellekte tutulur, kasada şifreli bir `.txt` dosyası olarak saklanır; açık kasadaki metin
+  dosyaları da aynı şekilde düzenlenebilir.
+* **Parçalara bölme:** Büyük kasaları e-posta, yükleme ya da FAT32 sınırları için 25 MB–4 GB'lık
+  `ad.pvault.001`, `.002`… parçaları olarak kaydedin. Kasayı açmak için herhangi bir parçayı seçmeniz
+  yeterli; parçalı kasalar salt okunurdur.
+* **Sağ tık menüsü:** Dolphin, GNOME Dosyalar (`nautilus-python` ile) ve Windows Gezgini'nde
+  *PrivaVault ile kilitle*.
 * **Koruma:** scrypt (128–512 MiB) ve kimliği doğrulanmış 64 KiB parçalarda AES-256-GCM. Her parça diske
   yazılmadan önce doğrulanır.
 * **Parola kurtarma yoktur.** Parolayı unutursanız kasa hiç kimse tarafından açılamaz.
@@ -210,7 +230,7 @@ koyu seçilebilir.
 * **Tek tıkla güncelleme:** Güncelleme denetimi varsayılan olarak kapalıdır. Yeni sürüm bulunduğunda
   *Şimdi güncelle* paketi indirir, PrivaVault imzasıyla doğrular ve kurar.
 * 1.x ile oluşturulan kasalar 2.0'da açılır.
-* **Komut satırı (Linux):** `privavault lock`, `open`, `list`, `check` (ayrıntı: `privavault help`).
+* **Komut satırı (Linux):** `privavault lock`, `open`, `list`, `check`; bölmek için `lock --split 2G` (ayrıntı: `privavault help`).
 
 Kurulum için yukarıdaki [Install](#install) tablosuna, ayrıntılar için `docs/` klasörüne bakın.
 

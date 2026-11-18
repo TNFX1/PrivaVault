@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+MimeType=all/allfiles;inode/directory;
+ExcludeServiceTypes=application/x-privavault;
+Actions=lock;
+X-KDE-Priority=TopLevel
+
+[Desktop Action lock]
+Name=Lock with PrivaVault
+Name[tr]=PrivaVault ile kilitle
+Icon=privavault
+Exec=privavault %F

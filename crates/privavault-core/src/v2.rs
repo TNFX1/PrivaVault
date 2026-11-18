@@ -517,7 +517,7 @@ fn same_file(a: &Path, b: &Path) -> bool {
 // ---------------------------------------------------------------------------------------------
 
 pub struct V2Vault {
-    file: File,
+    file: crate::parts::VaultFile,
     header: Header,
     aad: [u8; HEADER_LEN],
     stream: StreamBE32<Aes256Gcm>,
@@ -528,12 +528,16 @@ pub struct V2Vault {
 }
 
 impl V2Vault {
-    pub fn open(mut file: File, password: &str, job: &Job) -> Result<V2Vault> {
+    pub fn part_count(&self) -> usize {
+        self.file.part_count()
+    }
+
+    pub fn open(mut file: crate::parts::VaultFile, password: &str, job: &Job) -> Result<V2Vault> {
         let mut raw = [0u8; HEADER_LEN];
         file.seek(SeekFrom::Start(0)).ctx(|| "cannot read vault".into())?;
         file.read_exact(&mut raw).map_err(|_| Error::NotAVault)?;
         let header = Header::parse(&raw)?;
-        let actual = file.metadata().ctx(|| "cannot read vault".into())?.len();
+        let actual = file.len();
         if Some(actual) != header.expected_file_len() {
             return Err(Error::Corrupted("file is truncated or has extra data"));
         }

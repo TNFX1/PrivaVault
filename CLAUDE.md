@@ -8,6 +8,7 @@ Offline file encryption for Linux and Windows. Built with Tauri 2 and Rust (MIT 
   - v2 vault format (default for new vaults): scrypt, then HKDF, then AES-256-GCM in STREAM mode with 64 KiB chunks. The header is authenticated and there is a key check.
   - v1 vaults (from the Electron 1.x app) can only be read; they are never written.
   - Tests include real 1.4.0 fixtures.
+  - `src/notes.rs`: notes stored as top-level `.txt` entries. `src/parts.rs`: split vaults (`name.pvault.001…`), read through `VaultFile`; read-only.
 - `src-tauri/`: Tauri commands. Output paths come only from dialogs opened on the Rust side.
   - `src-tauri/src/cli.rs`: terminal commands (`privavault lock|open|list|check`), Unix only, run from `main.rs` before the window starts.
 - `fuzz/`: cargo-fuzz targets (`open_vault`, `entry_name`), outside the workspace; weekly CI job in `.github/workflows/fuzz.yml`. Locally without nightly: build with `RUSTC_BOOTSTRAP=1` and the sancov `RUSTFLAGS` cargo-fuzz uses.
@@ -46,3 +47,5 @@ Offline file encryption for Linux and Windows. Built with Tauri 2 and Rust (MIT 
 - Native dialogs, drag and drop, and notifications are not covered by automated tests.
 - The Windows build has never been run by hand (CI only), and the installer is unsigned.
 - There has been no independent crypto review.
+- The right-click menus (Dolphin service menu, Nautilus extension, Windows installer hook in `packaging/windows/hooks.nsh`) have not been clicked through by hand; the Windows hook is only built in CI.
+- GUI e2e on a Turkish desktop: run it with `LANG=en_US.UTF-8` (it matches English texts); headless with Xvfb (`DISPLAY=:N GDK_BACKEND=x11`, no `WAYLAND_DISPLAY`).

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Notes: write a note into a new or open vault, and edit text files in an open vault. The text stays
+  in memory and is stored encrypted as a top-level `.txt` file (no format change).
+- Split vaults: save a vault as `name.pvault.001`, `.002`, … (25 MB to 4 GB in the app,
+  `privavault lock --split SIZE` on the command line). Any part opens the whole vault. The parts are a
+  plain byte split (no format change); split vaults are read-only.
+- Right-click menu: *Lock with PrivaVault* in Dolphin (KIO service menu), GNOME Files
+  (nautilus-python extension) and Windows Explorer (installer registers it for the current user).
+
 ## 2.4.0 — 2026-11-14
 
 - Command line on Linux: `privavault lock|open|list|check`, using the same program as the app.

@@ -74,7 +74,9 @@
         "files": {
           "/usr/share/mime/packages/privavault.xml": "../packaging/linux/privavault-mime.xml",
           "/usr/share/metainfo/com.privavault.app.metainfo.xml": "../packaging/linux/com.privavault.app.metainfo.xml",
-          "/usr/share/applications/com.privavault.app.desktop": "../packaging/linux/com.privavault.app.desktop"
+          "/usr/share/applications/com.privavault.app.desktop": "../packaging/linux/com.privavault.app.desktop",
+          "/usr/share/kio/servicemenus/privavault-lock.desktop": "../packaging/linux/privavault-lock.desktop",
+          "/usr/share/nautilus-python/extensions/privavault.py": "../packaging/linux/nautilus/privavault.py"
         }
       },
       "rpm": {
@@ -82,7 +84,9 @@
         "files": {
           "/usr/share/mime/packages/privavault.xml": "../packaging/linux/privavault-mime.xml",
           "/usr/share/metainfo/com.privavault.app.metainfo.xml": "../packaging/linux/com.privavault.app.metainfo.xml",
-          "/usr/share/applications/com.privavault.app.desktop": "../packaging/linux/com.privavault.app.desktop"
+          "/usr/share/applications/com.privavault.app.desktop": "../packaging/linux/com.privavault.app.desktop",
+          "/usr/share/kio/servicemenus/privavault-lock.desktop": "../packaging/linux/privavault-lock.desktop",
+          "/usr/share/nautilus-python/extensions/privavault.py": "../packaging/linux/nautilus/privavault.py"
         }
       },
       "appimage": {
@@ -99,7 +103,8 @@
           "English",
           "Turkish"
         ],
-        "displayLanguageSelector": false
+        "displayLanguageSelector": false,
+        "installerHooks": "../packaging/windows/hooks.nsh"
       }
     }
   },

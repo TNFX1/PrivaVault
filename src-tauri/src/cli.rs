@@ -11,11 +11,14 @@ use zeroize::Zeroizing;
 
 const USAGE: &str = "\
 Usage:
-  privavault lock <file or folder>... [-o OUT.pvault] [--strength standard|high|maximum] [--force]
+  privavault lock <file or folder>... [-o OUT.pvault] [--strength standard|high|maximum] [--split SIZE] [--force]
   privavault open <vault.pvault> [-d DIR]     extract everything into a new folder in DIR (default: .)
   privavault list <vault.pvault>              show the files inside
   privavault check <vault.pvault>             decrypt and verify every byte, write nothing
   privavault                                  start the app
+
+--split cuts the vault into OUT.pvault.001, .002, … of at most SIZE (e.g. 25M, 2G; K/M/G are
+powers of 1024). Open or check a split vault by naming any of its parts.
 
 The password is asked on the terminal. When stdin is not a terminal, the first line of stdin is
 used instead (for scripts: printf '%s\\n' \"$PW\" | privavault open v.pvault).";
@@ -80,7 +83,8 @@ fn one_vault<'a>(pos: &[&'a str]) -> Result<&'a Path, String> {
 }
 
 fn lock(args: &[String]) -> CliResult {
-    let (pos, opts) = parse(args, &["-o", "--output", "--strength"], &["--force", "-f"])?;
+    let (pos, opts) = parse(args, &["-o", "--output", "--strength", "--split"], &["--force", "-f"])?;
+    let split = opt(&opts, &["--split"]).map(parse_size).transpose()?;
     if pos.is_empty() {
         return Err(format!("nothing to lock\n\n{USAGE}"));
     }
@@ -99,6 +103,9 @@ fn lock(args: &[String]) -> CliResult {
     if output.exists() && opt(&opts, &["--force", "-f"]).is_none() {
         return Err(format!("{} already exists (use --force to replace it)", output.display()));
     }
+    if split.is_some() && privavault_core::part_paths(&PathBuf::from(format!("{}.001", output.display()))).is_some() {
+        return Err(format!("{}.001 already exists; remove the old parts first", output.display()));
+    }
     let password = read_password("Password: ")?;
     if password.chars().count() < 8 {
         return Err("the password must be at least 8 characters".into());
@@ -107,7 +114,26 @@ fn lock(args: &[String]) -> CliResult {
         return Err("the passwords do not match".into());
     }
     let rep = run_job(|job| create_vault(&inputs, &output, &password, strength.params(), job))?;
-    println!("Locked {} files, {} folders ({}) into {}", rep.files, rep.folders, size(rep.bytes), rep.output.display());
+    match split {
+        Some(part) => {
+            let parts = run_job(|job| privavault_core::split_vault(&rep.output, part, job))?;
+            println!(
+                "Locked {} files, {} folders ({}) into {} parts: {} …",
+                rep.files,
+                rep.folders,
+                size(rep.bytes),
+                parts.len(),
+                parts[0].display()
+            );
+        }
+        None => println!(
+            "Locked {} files, {} folders ({}) into {}",
+            rep.files,
+            rep.folders,
+            size(rep.bytes),
+            rep.output.display()
+        ),
+    }
     for s in &rep.skipped {
         eprintln!("skipped (not a regular file or folder): {}", s.display());
     }
@@ -244,6 +270,25 @@ impl Drop for EchoOff {
     }
 }
 
+/// `25M` → 25 MiB, `2G`, `500K`, or plain bytes. At least 1 MiB, so a typo can't make
+/// thousands of parts.
+fn parse_size(s: &str) -> Result<u64, String> {
+    let t = s.trim().to_ascii_uppercase();
+    let t = t.strip_suffix("IB").or_else(|| t.strip_suffix('B')).unwrap_or(&t);
+    let (num, mult) = match t.chars().last() {
+        Some('K') => (&t[..t.len() - 1], 1u64 << 10),
+        Some('M') => (&t[..t.len() - 1], 1 << 20),
+        Some('G') => (&t[..t.len() - 1], 1 << 30),
+        _ => (t, 1),
+    };
+    let n: u64 = num.trim().parse().map_err(|_| format!("bad --split size {s:?} (try 25M or 2G)"))?;
+    let bytes = n.checked_mul(mult).ok_or(format!("--split size {s:?} is too large"))?;
+    if bytes < 1 << 20 {
+        return Err("--split size must be at least 1M".into());
+    }
+    Ok(bytes)
+}
+
 fn size(b: u64) -> String {
     const U: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
     let mut v = b as f64;
@@ -276,6 +321,17 @@ mod tests {
         assert!(opt(&opts, &["--force"]).is_some());
         assert!(parse(&s(&["-o"]), &["-o"], &[]).is_err());
         assert!(parse(&s(&["--nope"]), &[], &[]).is_err());
+    }
+
+    #[test]
+    fn split_sizes() {
+        assert_eq!(parse_size("25M"), Ok(25 << 20));
+        assert_eq!(parse_size("2g"), Ok(2 << 30));
+        assert_eq!(parse_size("1024KiB"), Ok(1 << 20));
+        assert_eq!(parse_size("100MB"), Ok(100 << 20));
+        assert!(parse_size("10K").is_err(), "below 1 MiB");
+        assert!(parse_size("abc").is_err());
+        assert!(parse_size("99999999999G").is_err());
     }
 
     #[test]

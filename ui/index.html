@@ -91,6 +91,7 @@
             <div class="row gap">
               <button class="btn" id="btnAddFiles" data-i18n="enc.addFiles"></button>
               <button class="btn" id="btnAddFolder" data-i18n="enc.addFolder"></button>
+              <button class="btn" id="btnAddNote" data-i18n="enc.addNote"></button>
             </div>
           </div>
 
@@ -120,6 +121,16 @@
               <p class="hint" id="pwMatch"></p>
 
               <p class="note" data-i18n="enc.noRecovery"></p>
+              <label for="encSplit" data-i18n="enc.split"></label>
+              <select id="encSplit" aria-describedby="encSplitHint">
+                <option value="" data-i18n="enc.splitOff"></option>
+                <option value="25000000">25 MB</option>
+                <option value="100000000">100 MB</option>
+                <option value="1000000000">1 GB</option>
+                <option value="2000000000">2 GB</option>
+                <option value="4000000000">4 GB</option>
+              </select>
+              <p class="hint" id="encSplitHint" data-i18n="enc.splitHint"></p>
               <label class="check"><input type="checkbox" id="encDelete"><span><b data-i18n="enc.deleteOriginals"></b><small data-i18n="enc.deleteHint"></small></span></label>
               <button type="submit" class="btn primary wide" id="btnEncrypt" data-i18n="enc.submit"></button>
               <p class="msg" id="encMsg" role="alert" hidden></p>
@@ -194,10 +205,12 @@
           </header>
           <div class="row gap vault-tools">
             <button class="btn" id="btnVaultAdd" data-i18n="vault.add"></button>
+            <button class="btn" id="btnNewNote" data-i18n="note.new"></button>
             <button class="btn" id="btnVerify" data-i18n="vault.verify"></button>
             <button class="btn" id="btnChangePw" data-i18n="vault.changePw"></button>
           </div>
           <p class="legacy" id="legacyNote" hidden data-i18n="vault.legacy"></p>
+          <p class="legacy" id="splitNote" hidden></p>
           <p class="warn-line" id="unsafeNote" hidden></p>
           <div class="toolbar">
             <input type="search" id="vaultFilter" data-i18n-placeholder="vault.filter" aria-label="Filter">
@@ -340,6 +353,22 @@
           <div class="row gap end">
             <button type="button" class="btn" id="ppCancel" data-i18n="common.cancel"></button>
             <button type="submit" class="btn primary" id="ppOk" data-i18n="vault.saveChange"></button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog id="noteEditor" class="preview" aria-labelledby="neTitle">
+        <form id="neForm" method="dialog">
+          <h2 id="neTitle"></h2>
+          <label for="neName" data-i18n="note.name"></label>
+          <input type="text" id="neName" maxlength="120" spellcheck="false" autocomplete="off">
+          <label for="neText" data-i18n="note.text"></label>
+          <textarea id="neText" rows="14" spellcheck="false" autocomplete="off"></textarea>
+          <p class="hint" data-i18n="note.memoryHint"></p>
+          <p class="msg" id="neMsg" role="alert" hidden></p>
+          <div class="row gap end">
+            <button type="button" class="btn" id="neCancel" data-i18n="common.cancel"></button>
+            <button type="submit" class="btn primary" id="neOk" data-i18n="note.done"></button>
           </div>
         </form>
       </dialog>

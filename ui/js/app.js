@@ -246,12 +246,18 @@ function renderSelection() {
   $("selection").hidden = sel.length === 0;
   $("encDrop").classList.toggle("has", sel.length > 0);
   const total = sel.reduce((a, s) => a + s.size, 0);
+  const editSel = (s) => editNote({ title: t("note.editTitle"), name: s.name, text: s.text }).then((n) => {
+    if (n) Object.assign(s, { name: noteName(n.name), text: n.text, size: utf8Len(n.text) }), renderSelection();
+  });
   $("selSummary").textContent = sel.length === 1 ? t("enc.selOne", { size: fmtBytes(total) }) : t("enc.selFiles", { n: sel.length, size: fmtBytes(total) });
   const list = $("selList");
   let fresh = 0;
-  list.replaceChildren(...sel.map((s, i) => h("li", state.justAdded?.has(s.path) ? { class: "new", vars: { "--i": fresh++ } } : {},
+  list.replaceChildren(...sel.map((s, i) => h("li", { class: [state.justAdded?.has(s.path) ? "new" : "", s.note ? "note-item" : ""].join(" ").trim() || null, vars: state.justAdded?.has(s.path) ? { "--i": fresh++ } : null },
     icon(s.is_dir ? "dir" : "file"),
-    h("span", { class: "name", title: s.path, text: s.name }),
+    s.note
+      ? h("span", { class: "name", role: "button", tabindex: "0", title: t("note.editTitle"), text: s.name,
+          onclick: () => editSel(s), onkeydown: (ev) => (ev.key === "Enter" || ev.key === " ") && (ev.preventDefault(), editSel(s)) })
+      : h("span", { class: "name", title: s.path, text: s.name }),
     h("span", { class: "size", text: s.is_dir ? `${t("enc.folderInfo", { n: s.files })} · ${fmtBytes(s.size)}` : fmtBytes(s.size) }),
     h("button", { class: "remove", type: "button", "aria-label": t("enc.remove", { name: s.name }), text: "×",
       onclick: () => { state.selection.splice(i, 1); renderSelection(); } }),
@@ -260,6 +266,7 @@ function renderSelection() {
 }
 
 function suggestedName() {
+  if (state.selection.length === 1 && state.selection[0].note) return state.selection[0].name.replace(/\.txt$/i, "") || "vault";
   if (state.selection.length === 1) return state.selection[0].name.replace(/\.[^.]+$/, "") || "vault";
   return `vault-${new Date().toISOString().slice(0, 10)}`;
 }
@@ -274,7 +281,13 @@ async function startEncrypt(ev) {
   if (pw !== pw2) { shake($("encPwForm")); return showMsg(msg, t("err.mismatch")); }
   showMsg(msg, "");
   try {
-    const res = await runOp(() => invoke("encrypt", { paths: state.selection.map((s) => s.path), password: pw, suggestedName: suggestedName(), deleteOriginals: $("encDelete").checked }));
+    const split = $("encSplit").value;
+    const res = await runOp(() => invoke("encrypt", {
+      paths: state.selection.filter((s) => !s.note).map((s) => s.path),
+      notes: state.selection.filter((s) => s.note).map((s) => ({ name: s.name, text: s.text })),
+      password: pw, suggestedName: suggestedName(), deleteOriginals: $("encDelete").checked,
+      partSize: split ? Number(split) : null,
+    }));
     if (!res) return; // dialog dismissed
     $("encPw").value = $("encPw2").value = "";
     updateMeter();
@@ -298,7 +311,8 @@ function renderEncResult() {
   if (!res) return;
   $("encResultText").textContent = t("enc.doneText", { files: res.files, size: fmtBytes(res.bytes) })
     + (res.originals_deleted ? ` ${t("enc.deleted")}` : "")
-    + (res.left_behind?.length ? ` ${t("enc.leftBehind", { n: res.left_behind.length })}` : "");
+    + (res.left_behind?.length ? ` ${t("enc.leftBehind", { n: res.left_behind.length })}` : "")
+    + (res.parts > 1 ? ` ${t("enc.parts", { n: res.parts })}` : "");
   $("encResultPath").textContent = res.output;
   $("encSkipped").hidden = res.skipped.length === 0;
   $("encSkipped").textContent = t("enc.skipped", { n: res.skipped.length });
@@ -425,6 +439,10 @@ function renderVault() {
   $("vaultName").textContent = v.name;
   $("vaultMeta").textContent = t("vault.meta", { format: t(`fmt.${v.format}`), size: fmtBytes(v.size), kdf: v.kdf });
   $("legacyNote").hidden = v.format !== "v1";
+  const split = v.parts > 1;
+  $("splitNote").hidden = !split;
+  $("splitNote").textContent = split ? t("vault.split", { n: v.parts }) : "";
+  for (const id of ["btnVaultAdd", "btnNewNote", "btnChangePw"]) $(id).hidden = split;
   const unsafeCount = v.entries.filter((e) => e.unsafe_path).length;
   $("unsafeNote").hidden = unsafeCount === 0;
   $("unsafeNote").textContent = t("vault.unsafe", { n: unsafeCount });
@@ -455,9 +473,13 @@ function renderRows() {
     const save = e.is_dir || e.unsafe_path ? null :
       h("button", { class: "btn", type: "button", text: t("vault.save"), "aria-label": `${t("vault.save")} ${base}`,
         onclick: () => extractOne(e.index) });
-    const remove = h("button", { class: "btn ghost", type: "button", text: t("vault.remove"), "aria-label": `${t("vault.remove")} ${base}`,
+    const readOnly = v.parts > 1;
+    const edit = readOnly || !isNote(e) ? null :
+      h("button", { class: "btn ghost", type: "button", text: t("note.edit"), "aria-label": `${t("note.edit")} ${base}`,
+        onclick: () => editVaultNote(e) });
+    const remove = readOnly ? null : h("button", { class: "btn ghost", type: "button", text: t("vault.remove"), "aria-label": `${t("vault.remove")} ${base}`,
       onclick: () => removeEntry(e, base) });
-    const action = h("span", {}, save, remove);
+    const action = h("span", {}, save, edit, remove);
     return h("tr", { class: e.unsafe_path ? "unsafe" : "", vars: { "--i": Math.min(i, 30) } },
       h("td", {}, name),
       h("td", { class: "num", text: e.is_dir ? "" : fmtBytes(e.size) }),
@@ -477,6 +499,75 @@ function previewKind(name, size) {
   if (IMAGE_EXT.test(name)) return "image";
   if (TEXT_EXT.test(name)) return "text";
   return null;
+}
+
+// ---------------------------------------------------------------- notes
+// A note is text typed here and stored in the vault as a top-level .txt file. It only lives in
+// memory on this side; the backend writes it straight into the encrypted stream.
+
+const NOTE_MAX = 1024 * 1024;
+const utf8Len = (text) => new TextEncoder().encode(text).length;
+const noteName = (name) => {
+  const n = name.trim() || t("note.newTitle");
+  return /\.txt$/i.test(n) ? n : `${n}.txt`;
+};
+const isNote = (e) => !e.is_dir && !e.unsafe_path && !/[\\/]/.test(e.path) && /\.txt$/i.test(e.path) && e.size <= NOTE_MAX;
+
+/** Open the note editor. Resolves { name, text } or null on cancel. */
+function editNote({ title, name = "", text = "" }) {
+  const dlg = $("noteEditor");
+  $("neTitle").textContent = title;
+  $("neName").value = name.replace(/\.txt$/i, "");
+  $("neText").value = text;
+  showMsg($("neMsg"), "");
+  dlg.showModal();
+  (name ? $("neText") : $("neName")).focus();
+  return new Promise((resolve) => {
+    const done = (value) => {
+      $("neForm").onsubmit = $("neCancel").onclick = dlg.oncancel = null;
+      $("neText").value = $("neName").value = "";
+      dlg.close();
+      resolve(value);
+    };
+    $("neCancel").onclick = () => done(null);
+    dlg.oncancel = () => done(null);
+    $("neForm").onsubmit = (ev) => {
+      ev.preventDefault();
+      const value = { name: $("neName").value, text: $("neText").value };
+      if (utf8Len(value.text) > NOTE_MAX) return showMsg($("neMsg"), t("note.tooLarge"));
+      done(value);
+    };
+  });
+}
+
+async function addNoteToSelection() {
+  const n = await editNote({ title: t("note.newTitle") });
+  if (!n) return;
+  addToSelection([{ note: true, path: `note:${crypto.randomUUID()}`, name: noteName(n.name), text: n.text, size: utf8Len(n.text), is_dir: false }]);
+}
+
+async function newVaultNote() {
+  const n = await editNote({ title: t("note.newTitle") });
+  if (!n) return;
+  const name = noteName(n.name);
+  const answer = await askPassword({ title: t("note.saveTitle"), body: t("note.saveBody", { name }) });
+  if (answer) await editVault({ password: answer.password, notes: [{ name, text: n.text }] }, t("note.saved"));
+}
+
+async function editVaultNote(entry) {
+  state.lastActivity = Date.now();
+  let text;
+  try {
+    text = new TextDecoder().decode(await runOp(() => invoke("preview_entry", { index: entry.index })));
+  } catch (e) {
+    return showMsg($("vaultMsg"), errText(e));
+  }
+  const n = await editNote({ title: t("note.editTitle"), name: entry.path, text });
+  text = null;
+  if (!n) return;
+  const name = noteName(n.name);
+  const answer = await askPassword({ title: t("note.saveTitle"), body: t("note.saveBody", { name }) });
+  if (answer) await editVault({ password: answer.password, remove: [entry.path], notes: [{ name, text: n.text }] }, t("note.saved"));
 }
 
 /** Ask for the vault password (and a new one when `change`). Resolves null on cancel. */
@@ -517,7 +608,7 @@ async function editVault(args, okText) {
   state.lastActivity = Date.now();
   showMsg($("vaultMsg"), "");
   try {
-    const res = await runOp(() => invoke("edit_vault", { remove: [], add: [], newPassword: null, ...args }));
+    const res = await runOp(() => invoke("edit_vault", { remove: [], add: [], notes: [], newPassword: null, ...args }));
     state.vault = res;
     renderVault();
     showMsg($("vaultMsg"), okText, true);
@@ -813,6 +904,8 @@ function wire() {
   });
   $("cqStay").addEventListener("click", () => $("confirmQuit").close());
   $("btnVaultAdd").addEventListener("click", addFiles);
+  $("btnNewNote").addEventListener("click", newVaultNote);
+  $("btnAddNote").addEventListener("click", addNoteToSelection);
   $("btnVerify").addEventListener("click", verifyVault);
   $("btnChangePw").addEventListener("click", changePassword);
   $("pvClose").addEventListener("click", closePreview);

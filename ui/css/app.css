@@ -395,3 +395,13 @@ body, .rail, .dropzone, .selection, .table-wrap, input, select { transition-prop
 .entry-name.previewable .label { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 td.act { white-space: nowrap; }
 td.act .btn + .btn { margin-left: 6px; }
+
+/* notes */
+#neForm { display: grid; gap: 6px; }
+textarea {
+  width: 100%; min-height: 240px; padding: 10px 12px; resize: vertical;
+  border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: var(--surface); color: inherit; font: 14px/1.5 var(--mono);
+}
+textarea:focus-visible { border-color: var(--accent); }
+.items li.note-item .name { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }

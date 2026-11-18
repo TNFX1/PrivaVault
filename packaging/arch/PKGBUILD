@@ -12,6 +12,7 @@ license=('MIT')
 depends=('webkit2gtk-4.1' 'gtk3' 'glib2' 'cairo' 'pango' 'gdk-pixbuf2' 'libsoup3' 'hicolor-icon-theme')
 makedepends=('cargo')
 optdepends=('xdg-desktop-portal-kde: native file dialogs on KDE Plasma'
+            'python-nautilus: right-click menu in GNOME Files'
             'xdg-desktop-portal-gtk: native file dialogs on GNOME and others')
 options=('!lto' '!debug')
 if [[ -n "$PRIVAVAULT_LOCAL_SRC" ]]; then
@@ -55,6 +56,8 @@ package() {
   install -Dm644 "$s/packaging/linux/com.privavault.app.desktop" "$pkgdir/usr/share/applications/com.privavault.app.desktop"
   install -Dm644 "$s/packaging/linux/privavault-mime.xml" "$pkgdir/usr/share/mime/packages/privavault.xml"
   install -Dm644 "$s/packaging/linux/com.privavault.app.metainfo.xml" "$pkgdir/usr/share/metainfo/com.privavault.app.metainfo.xml"
+  install -Dm644 "$s/packaging/linux/privavault-lock.desktop" "$pkgdir/usr/share/kio/servicemenus/privavault-lock.desktop"
+  install -Dm644 "$s/packaging/linux/nautilus/privavault.py" "$pkgdir/usr/share/nautilus-python/extensions/privavault.py"
   install -Dm644 "$s/src-tauri/icons/32x32.png" "$pkgdir/usr/share/icons/hicolor/32x32/apps/privavault.png"
   install -Dm644 "$s/src-tauri/icons/64x64.png" "$pkgdir/usr/share/icons/hicolor/64x64/apps/privavault.png"
   install -Dm644 "$s/src-tauri/icons/128x128.png" "$pkgdir/usr/share/icons/hicolor/128x128/apps/privavault.png"
