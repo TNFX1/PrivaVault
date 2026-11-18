@@ -56,8 +56,16 @@ fn editing_a_note_replaces_it_and_clashing_names_get_a_suffix() {
     assert_eq!(paths(&v), ["notes (2).txt", "notes.txt"]);
 
     // Save an edited note: remove the old entry, add the new text under the same name
-    v.rewrite_with_notes(&out, "pw", FAST, &["notes (2).txt".into()], &[], &[note("notes (2).txt", "edited")], &Job::none())
-        .unwrap();
+    v.rewrite_with_notes(
+        &out,
+        "pw",
+        FAST,
+        &["notes (2).txt".into()],
+        &[],
+        &[note("notes (2).txt", "edited")],
+        &Job::none(),
+    )
+    .unwrap();
     let mut v = Vault::open(&out, "pw", &Job::none()).unwrap();
     assert_eq!(paths(&v), ["notes (2).txt", "notes.txt"]);
     assert_eq!(read(&mut v, "notes (2).txt"), "edited");

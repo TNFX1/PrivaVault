@@ -15,10 +15,7 @@ pub struct Note {
 /// Manifest entries for `notes`: one-component `.txt` names, clear of the lower-cased
 /// top-level names in `taken` (which is updated), ` (2)`, ` (3)`… on a clash.
 pub(crate) fn note_entries(notes: &[Note], taken: &mut HashSet<String>) -> Vec<ManifestEntry> {
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .ok()
-        .map(|d| d.as_secs() as i64);
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).ok().map(|d| d.as_secs() as i64);
     notes
         .iter()
         .map(|n| {

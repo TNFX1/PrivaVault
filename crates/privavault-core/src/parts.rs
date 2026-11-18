@@ -22,10 +22,8 @@ pub fn part_paths(path: &Path) -> Option<Vec<PathBuf>> {
         return None;
     }
     let dir = path.parent().unwrap_or(Path::new(""));
-    let parts: Vec<PathBuf> = (1..=999)
-        .map(|i| dir.join(format!("{base}.{i:03}")))
-        .take_while(|p| p.is_file())
-        .collect();
+    let parts: Vec<PathBuf> =
+        (1..=999).map(|i| dir.join(format!("{base}.{i:03}"))).take_while(|p| p.is_file()).collect();
     (!parts.is_empty()).then_some(parts)
 }
 
@@ -35,7 +33,8 @@ pub fn split_vault(vault: &Path, part_size: u64, job: &Job) -> Result<Vec<PathBu
     if part_size == 0 {
         return Err(Error::InvalidParams("part size must be at least one byte"));
     }
-    let name = vault.file_name().and_then(|n| n.to_str()).ok_or(Error::InvalidParams("vault name is not valid text"))?;
+    let name =
+        vault.file_name().and_then(|n| n.to_str()).ok_or(Error::InvalidParams("vault name is not valid text"))?;
     let dir = vault.parent().unwrap_or(Path::new(""));
     let part = |i: u64| dir.join(format!("{name}.{i:03}"));
     if part(1).exists() {
